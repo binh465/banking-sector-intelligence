@@ -21,3 +21,18 @@ One entry per decision: what, why, date. Newest at the bottom.
 - Consequence: dim_ticker SCD Type 2 has one real change to model (STB gets two rows). Phase 3 still needs to
   confirm no other ticker changed its name in the window.
 - Consequence for Phase 5: both names must be in the alias table; news before 2026-06-01 uses the old name.
+
+## 2026-09-27 - CafeF per-ticker list as a recall reference
+- Crawl the per-ticker endpoint (`/du-lieu/Ajax/Events_RelatedNews_New.aspx`) and keep which ticker
+  each item came from (file name `{TICKER}_p{NN}.html`).
+- In Phase 5, compare our title rules with this list to estimate what the rules miss. Only CafeF
+  articles (`-188...chn`) are compared; disclosure pages are not in the sitemap.
+- This is recall against CafeF's own tagging, not true recall. CafeF can tag by article body or tag
+  wrongly. Misses get split by reading a sample of ~50: (a) the title names the bank but a rule
+  didn't catch it, (b) the title doesn't name the bank at all (limit of title-only matching).
+
+## 2026-09-27 - Company disclosures kept as a separate item type
+- Disclosure pages (`/du-lieu/{TICKER}-{id}/...`) are kept, with `item_type` = article / disclosure
+  and `has_time` = 0 when the listed time is `00:00`.
+- How a date-only item maps to a reaction session is decided in Phase 5, after seeing how many
+  there are and what they are.
