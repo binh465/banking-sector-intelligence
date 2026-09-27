@@ -3,7 +3,7 @@
 window:
   end_date: 2026-09-25     # last completed HOSE session at lock time (verified 2026-09-27: Vietstock shows 25/09/2026 'Kết thúc phiên')
   start_date: 2024-09-26   # end_date - 2 years + 1 day
-  base_date: null          # first trading session >= start_date; fill once after the VNINDEX calendar load (Phase 1)
+  base_date: 2024-09-26    # first trading session >= start_date, from raw/calendar/VNINDEX.parquet (filled 2026-09-27)
 locked_on: 2026-09-27
 price_source: VCI via vnstock
 news_source: CafeF (per-ticker endpoint + daily sitemap)

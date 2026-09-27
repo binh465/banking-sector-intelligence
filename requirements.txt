@@ -1,0 +1,15 @@
+# vnstock and vnai are not installable from PyPI (project quarantined there);
+# they come from the vendor index below. Versions are pinned exactly so pip
+# cannot pick a same-named package with a higher version from another index.
+--extra-index-url https://vnstocks.com/api/simple
+
+# Direct dependencies of this project (transitive packages are resolved by pip).
+vnstock==4.0.9
+vnai==2.6.2
+pandas==2.3.3
+pyarrow==25.0.1
+pyodbc==5.3.0
+PyYAML==6.0.3
+requests==2.34.2
+beautifulsoup4==4.15.0
+lxml==6.1.3

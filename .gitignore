@@ -13,6 +13,7 @@ __pycache__/
 
 # OS / editor (.vs/ is created by SSMS / Visual Studio: per-user state)
 .vs/
+*.slnx
 Thumbs.db
 desktop.ini
 .vscode/
