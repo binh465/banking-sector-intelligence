@@ -70,15 +70,38 @@ So far, `article:published_time` is the only field I've found that matches the d
 time. Only two articles were checked, so this is not enough to decide yet. I'll test `lastmod` on
 a larger sample in Phase 1 before choosing the timestamp for `reaction_date_key`.
 
-## Per-ticker page (`https://cafef.vn/du-lieu/tin-doanh-nghiep/vcb/event.chn`)
+## Per-ticker endpoint
 
-- The page loads (HTTP 200), but the news list isn't in the HTML. It's loaded by JavaScript and I
-  haven't found the request behind it yet.
-- Next: open the page with DevTools > Network and look for the XHR that returns the list.
+The page `https://cafef.vn/du-lieu/tin-doanh-nghiep/vcb/event.chn` loads its news list through this
+request. I found the request in the page's inline script and checked it in a browser:
+
+```
+GET https://cafef.vn/du-lieu/Ajax/Events_RelatedNews_New.aspx
+    ?symbol=VCB&floorID=0&configID=0&PageIndex=1&PageSize=30&Type=2
+```
+
+- Returns an HTML fragment (`<ul class="News_Title_Link">`), 30 items per page. Each item has a
+  time (`<span class="timeTitle">dd/mm/yyyy HH:MM</span>`), a title and a link.
+- Two kinds of links:
+  - CafeF articles: `/...-188YYMMDDhhmmssNNN.chn`
+  - Company disclosure pages: `/du-lieu/VCB-2982639/...chn`. Many of these show `00:00`, so only
+    the date can be used as the event time.
+- How far back: for VCB, page 1 goes from 2026-09-23 back to 2026-05-13, page 10 covers
+  2023-04-26 to 2023-07-31. A 2-year window looks like roughly 7 pages per ticker, or about
+  70 requests for all 10 tickers.
+- The list time matched `article:published_time` for the 3 articles where I could read the meta
+  tag (a 4th page didn't match my regex). So this endpoint seems to give the publish time,
+  unlike `lastmod` in the sitemap. Still only a few articles; to be checked on the larger sample.
+- The list is CafeF's own tagging of news to a ticker. Some items are about several banks
+  (e.g. "Cổ đông VietinBank, BIDV, Vietcombank đón tin vui").
+
+Side note for Phase 2: the VCB list has "23.7.2026, ngày GDKHQ trả cổ tức năm 2025 bằng tiền
+(450 đ/cp)". That ex-date can be used to check whether VCI adjusts prices for cash dividends.
 
 ## Open questions
 
 1. Which timestamp to use for the publish time (see above).
-2. The per-ticker endpoint: URL, parameters, page size, how far back it goes, whether it returns
-   publish times.
+2. Whether the per-ticker list time always equals `article:published_time`, and what `00:00`
+   means for disclosures (published before the open, or time unknown).
 3. Whether the 258 URLs with short IDs follow another pattern.
+4. Whether company disclosures count as news articles or as a separate event type.
