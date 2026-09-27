@@ -6,15 +6,15 @@ SELECT SERVERPROPERTY('Edition')        AS edition,
        SERVERPROPERTY('ProductVersion') AS product_version,
        SERVERPROPERTY('Collation')      AS server_collation;
 
--- 2. Expect 1 row: Vietnamese_100_CI_AS, SIMPLE.
+-- 2. Database collation and recovery model.
 SELECT name, collation_name, recovery_model_desc
 FROM sys.databases
 WHERE name = N'BankingSectorIntelligence';
 
--- 3. Expect exactly 4 rows.
+-- 3. Layer schemas present.
 SELECT name
 FROM BankingSectorIntelligence.sys.schemas
 WHERE name IN (N'raw', N'stg', N'dw', N'mart');
 
--- 4. Window arithmetic. Expect 2024-09-26.
+-- 4. Window arithmetic: end_date - 2 years + 1 day.
 SELECT DATEADD(DAY, 1, DATEADD(YEAR, -2, CAST('2026-09-25' AS date))) AS start_date;
