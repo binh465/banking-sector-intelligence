@@ -1,0 +1,27 @@
+# Scope: 10 HOSE-listed banks. Current full names, checked 2026-09-27
+# against VietstockFinance company profile pages (finance.vietstock.vn/<TICKER>/ho-so-doanh-nghiep.htm).
+# Aliases are NOT kept here; they are built in Phase 5 from the crawled articles.
+# Name changes inside the analysis window are listed under name_history (source for dim_ticker SCD2).
+exchange: HOSE
+tickers:
+  - {ticker: VCB, full_name: "Ngân hàng TMCP Ngoại thương Việt Nam"}
+  - {ticker: CTG, full_name: "Ngân hàng TMCP Công Thương Việt Nam"}
+  - {ticker: TCB, full_name: "Ngân hàng TMCP Kỹ thương Việt Nam"}
+  - {ticker: MBB, full_name: "Ngân hàng TMCP Quân đội"}
+  - {ticker: ACB, full_name: "Ngân hàng TMCP Á Châu"}
+  - {ticker: VPB, full_name: "Ngân hàng TMCP Việt Nam Thịnh Vượng"}
+  - ticker: STB
+    full_name: "Ngân hàng TMCP Sài Gòn Tài Lộc"
+    name_history:
+      - full_name: "Ngân hàng TMCP Sài Gòn Thương Tín"
+        valid_to: 2026-05-31
+      - full_name: "Ngân hàng TMCP Sài Gòn Tài Lộc"
+        valid_from: 2026-06-01
+    name_change_source: >-
+      SBV Decision 36/QĐ-QLGS4 dated 2026-06-01; bank notice
+      https://www.sacombank.com.vn/trang-chu/tin-tuc/thong-bao/2026/sacombank-thong-bao-thay-doi-ten-goi.html
+      (English short name SACOMBANK unchanged)
+  - {ticker: HDB, full_name: "Ngân hàng TMCP Phát triển Thành phố Hồ Chí Minh"}
+  - {ticker: TPB, full_name: "Ngân hàng TMCP Tiên Phong"}
+  # Written with an en dash on shb.com.vn, with a hyphen on Vietstock - both forms can appear in news titles.
+  - {ticker: SHB, full_name: "Ngân hàng TMCP Sài Gòn – Hà Nội"}

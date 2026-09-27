@@ -1,0 +1,18 @@
+# News HTML/XML: large, a re-crawl returns different results, not ours to publish.
+# Use raw/news/* (not raw/news/) so the negation below can take effect.
+raw/news/*
+!raw/news/.gitkeep
+
+# Local connection settings (copy config/db.example.yaml to config/db.yaml)
+config/db.yaml
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# OS / editor (.vs/ is created by SSMS / Visual Studio: per-user state)
+.vs/
+Thumbs.db
+desktop.ini
+.vscode/

@@ -1,0 +1,6 @@
+# Copy to config/db.yaml (git-ignored) and adjust to your machine.
+server: localhost\SQLEXPRESS
+database: BankingSectorIntelligence
+driver: ODBC Driver 18 for SQL Server
+trusted_connection: yes          # Windows Authentication
+trust_server_certificate: yes    # Driver 18 encrypts by default; local Express uses a self-signed cert
