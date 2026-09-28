@@ -1,0 +1,30 @@
+# Broad title filter used before fetching article pages for their real publish time.
+# Kept wide on purpose (a superset of what the Phase 5 rules can match), because sitemap
+# lastmod is not the publish time. Articles outside this set have no fetched publish time;
+# if Phase 5 ever matches one, it falls back to lastmod and is flagged time_source = 'lastmod'.
+#
+# Tickers come from config/tickers.yaml (whole word, upper case).
+# Names and context words are matched case-insensitively anywhere in the title.
+names:
+  - Vietcombank
+  - VietinBank
+  - Techcombank
+  - MBBank
+  - MB Bank
+  - VPBank
+  - Sacombank
+  - HDBank
+  - TPBank
+  - Ngân hàng Quân đội
+  - Ngoại thương
+  - Công thương
+  - Kỹ thương
+  - Á Châu
+  - Thịnh Vượng
+  - Sài Gòn Thương Tín
+  - Sài Gòn Tài Lộc
+  - Tiên Phong
+  - Sài Gòn - Hà Nội
+  - Sài Gòn – Hà Nội
+context_words:
+  - ngân hàng

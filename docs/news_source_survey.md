@@ -80,6 +80,28 @@ So far, `article:published_time` is the only field I've found that matches the d
 time. Only two articles were checked, so this is not enough to decide yet. I'll test `lastmod` on
 a larger sample in Phase 1 before choosing the timestamp for `reaction_date_key`.
 
+## lastmod vs publish time, measured on a sample (2026-09-28)
+
+Stratified sample of 50 articles (`ingest/sample_lastmod.py`, fixed seed), strata by
+lastmod minus URL timestamp. Each timestamp mapped to a trading session: before 15:00 -> first
+trading day on or after that date, from 15:00 -> first trading day after it
+(`sql/04_quality/030_lastmod_sample_analysis.sql`).
+
+| Stratum | Lag | Population | Sampled | Different session |
+|---|---|---|---|---|
+| A | < 1 h | 201,627 | 14 | 1 |
+| B | 1-6 h | 25,378 | 14 | 0 |
+| C | 6-24 h | 13,732 | 11 | 2 |
+| D | >= 24 h | 5,320 | 11 | 8 |
+
+- Weighted by stratum population: 8.4% of the 246,057 articles would get a different session
+  from lastmod than from the real publish time. Unweighted (11/50) would say 22%.
+- The 8.4% is rough. Stratum A is 82% of the population and rests on 1 mismatch in 14, so the
+  real rate could be anywhere from a few percent to a few tens of percent.
+- Stratum D (8 of 11 wrong) fits lastmod being a modification time.
+
+Decision: lastmod is not used for `reaction_date_key`. See docs/decisions.md.
+
 ## Per-ticker endpoint
 
 The page `https://cafef.vn/du-lieu/tin-doanh-nghiep/vcb/event.chn` loads its news list through this
@@ -110,8 +132,7 @@ Side note for Phase 2: the VCB list has "23.7.2026, ngày GDKHQ trả cổ tức
 
 ## Open questions
 
-1. Which timestamp to use for the publish time (see above).
-2. Whether the per-ticker list time always equals `article:published_time`, and what `00:00`
+1. Whether the per-ticker list time always equals `article:published_time`, and what `00:00`
    means for disclosures (published before the open, or time unknown).
-3. Whether the 258 URLs with short IDs follow another pattern.
-4. Whether company disclosures count as news articles or as a separate event type.
+2. Whether the 258 URLs with short IDs follow another pattern.
+3. Whether company disclosures count as news articles or as a separate event type.

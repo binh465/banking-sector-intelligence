@@ -36,3 +36,22 @@ One entry per decision: what, why, date. Newest at the bottom.
   and `has_time` = 0 when the listed time is `00:00`.
 - How a date-only item maps to a reaction session is decided in Phase 5, after seeing how many
   there are and what they are.
+
+## 2026-09-28 - Raw DDL creates tables only if they don't exist
+- The raw DDL files used DROP + CREATE. Running one again (a tab left open in SSMS) emptied
+  raw_price_daily and raw_calendar at least once without any error; the lastmod analysis then
+  returned only NULL sessions. Found by row counts and sys.tables.create_date.
+- Now: `IF OBJECT_ID(...) IS NULL CREATE TABLE`. Dropping is a separate, manual script
+  (`sql/01_ddl/901_drop_raw_tables.sql`), used only when a table's structure changes.
+
+## 2026-09-28 - Publish time comes from the article page, not from sitemap lastmod
+- Measured on a 50-article stratified sample: lastmod lands on a different trading session
+  for ~8.4% of articles (weighted), with a wide margin. Not good enough for a +-2 session match.
+- Fetch the article page for every sitemap entry whose title passes `config/news_prefilter.yaml`
+  (tickers, bank names, "ngân hàng"): 10,966 candidates. The wide filter is on purpose, so the
+  tier-3 alias + context rule in Phase 5 still has publish times. Pages stored gzip-compressed.
+- Phase 5 keeps a `time_source` column (published_time / lastmod). A matched article without a
+  fetched page falls back to lastmod and is counted in Limitations.
+- Known cost: some names in the filter are common words ("Tiên Phong" = pioneer,
+  "Công thương" as in Bộ Công Thương), so some fetched pages are not about banks. That only costs
+  fetch time; matching precision is handled in Phase 5.

@@ -1,10 +1,11 @@
 -- Raw landing tables for the price snapshots. Every source value is text,
 -- exactly as read from the parquet files; typing happens in stg.
--- DROP + CREATE is safe here: raw is fully reloadable from the committed parquet files.
+-- Creates the table only if it doesn't exist, so running this file again never deletes data.
+-- To change a table's structure, drop it first with 901_drop_raw_tables.sql, then reload.
 USE BankingSectorIntelligence;
 GO
 
-DROP TABLE IF EXISTS raw.raw_price_daily;
+IF OBJECT_ID(N'raw.raw_price_daily', N'U') IS NULL
 CREATE TABLE raw.raw_price_daily (
     raw_id              BIGINT IDENTITY(1,1) NOT NULL,
     [symbol]            NVARCHAR(20)  NULL,
@@ -21,7 +22,7 @@ CREATE TABLE raw.raw_price_daily (
     loaded_at_utc       DATETIME2(0)  NOT NULL CONSTRAINT df_raw_price_daily_loaded DEFAULT SYSUTCDATETIME()
 );
 
-DROP TABLE IF EXISTS raw.raw_calendar;
+IF OBJECT_ID(N'raw.raw_calendar', N'U') IS NULL
 CREATE TABLE raw.raw_calendar (
     -- same shape as raw_price_daily; holds the VNINDEX bars used as the trading calendar
     raw_id              BIGINT IDENTITY(1,1) NOT NULL,

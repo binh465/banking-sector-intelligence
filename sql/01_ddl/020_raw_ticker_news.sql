@@ -1,10 +1,11 @@
 -- Raw landing table for CafeF's per-ticker news list (raw/news/ticker/*.html).
 -- One row per list item, values as text exactly as parsed from the HTML; typing happens in stg.
--- DROP + CREATE is safe: the table is fully reloadable from the saved HTML files.
+-- Creates the table only if it doesn't exist, so running this file again never deletes data.
+-- To change a table's structure, drop it first with 901_drop_raw_tables.sql, then reload.
 USE BankingSectorIntelligence;
 GO
 
-DROP TABLE IF EXISTS raw.raw_ticker_news;
+IF OBJECT_ID(N'raw.raw_ticker_news', N'U') IS NULL
 CREATE TABLE raw.raw_ticker_news (
     raw_id          BIGINT IDENTITY(1,1) NOT NULL,
     [ticker]        NVARCHAR(20)   NULL,   -- ticker whose list the item came from (file name)
