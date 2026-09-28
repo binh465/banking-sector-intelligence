@@ -36,6 +36,16 @@ Nothing is disallowed. The crawler will use a real User-Agent, a short delay, an
 Rough volume for the window: ~146 buckets x ~2,500 URLs = ~360,000 URLs, ~280 MB of raw XML
 (git-ignored under `raw/news/`).
 
+## Full download (2026-09-28)
+
+- 146 bucket files (2024-09-21-25 to 2026-09-26-30), 185 MB, all HTTP 200, all with a closing
+  `</urlset>`. Older buckets are smaller (~1.1 MB), so the earlier ~360k estimate was too high.
+- 248,649 entries, 248,415 distinct URLs. Every calendar day in the window has entries
+  (lowest: 173 on 2024-10-27, a Sunday).
+- 232 URLs appear in two bucket files, each time with a different `lastmod`. So an article can
+  show up again later with a new `lastmod`, which fits `lastmod` being a modification time.
+  Staging has to keep one row per URL.
+
 ## Article URL IDs
 
 Most URLs end in `-188YYMMDDhhmmssNNN.chn` (2,219 of 2,477). The 12 digits after `188` parse as
