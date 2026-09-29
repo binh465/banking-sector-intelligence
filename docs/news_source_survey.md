@@ -130,9 +130,25 @@ GET https://cafef.vn/du-lieu/Ajax/Events_RelatedNews_New.aspx
 Side note for Phase 2: the VCB list has "23.7.2026, ngày GDKHQ trả cổ tức năm 2025 bằng tiền
 (450 đ/cp)". That ex-date can be used to check whether VCI adjusts prices for cash dividends.
 
+## Loading into the raw layer (2026-09-29)
+
+Full page fetch: 10,966 candidates, 10,959 saved, 7 returned 404, 2 HTTP 504 that succeeded on retry.
+
+- `raw.raw_article`: 248,649 rows, 248,415 distinct URLs (234 extra rows: 232 URLs listed more than once, 230 of them twice and
+  2 three times).
+- Titles: CafeF puts HTML entities inside the CDATA ("Lynk &amp; Co"). 1,134 titles still had
+  `&amp;` after one decode; the loader now decodes the inner text once more.
+- 39 sitemap titles are not in Unicode NFC (decomposed Vietnamese letters). Small, but it matters
+  for text matching in Phase 5.
+- Fetched pages without `article:published_time`: 94 of 10,959 (0.9%) after the full fetch
+  (47 of ~5.1k in the first look). They are long-form sponsored pages with no date meta at all.
+  They fall back to lastmod (`time_source`).
+- Sitemap title vs page `og:title`: 593 of 10,959 (5.4%) differ in wording, not only in spaces (e.g. a longer
+  headline in the sitemap, a shorter one in og:title). Which title the Phase 5 rules read is a
+  decision for that phase.
+
 ## Open questions
 
 1. Whether the per-ticker list time always equals `article:published_time`, and what `00:00`
    means for disclosures (published before the open, or time unknown).
-2. Whether the 258 URLs with short IDs follow another pattern.
-3. Whether company disclosures count as news articles or as a separate event type.
+2. Whether company disclosures count as news articles or as a separate event type.
