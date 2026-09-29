@@ -45,7 +45,8 @@ ENTRY_RE = re.compile(
 def clean_title(raw: str) -> str:
     t = html.unescape(raw).strip()
     if t.startswith("<![CDATA[") and t.endswith("]]>"):
-        t = t[9:-3]
+        # CafeF puts HTML entities inside the CDATA ("Lynk &amp; Co"), so decode the inner text once more.
+        t = html.unescape(t[9:-3])
     return t.strip()
 
 
