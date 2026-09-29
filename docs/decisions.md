@@ -55,3 +55,22 @@ One entry per decision: what, why, date. Newest at the bottom.
 - Known cost: some names in the filter are common words ("Tiên Phong" = pioneer,
   "Công thương" as in Bộ Công Thương), so some fetched pages are not about banks. That only costs
   fetch time; matching precision is handled in Phase 5.
+
+## 2026-09-29 - Staging cuts prices to the locked window
+- The ~100 sessions before base_date (2024-05-02 to 2024-09-25) stay in raw and are not loaded
+  into staging. The window was locked in Phase 0, so every number from here on uses only that window.
+- Cost: the first session (2024-09-26) has no return inside the window, and the first 60 sessions
+  have no z-score. That matches the structural check planned for Phase 6 (61 rows without z per ticker).
+- Raw still has the earlier sessions, so this can be changed later without downloading again.
+
+## 2026-09-29 - Config snapshot in the database
+- `ingest/load_config.py` loads `config/scope.yaml` and `config/tickers.yaml` into
+  raw.raw_scope, raw.raw_ticker_config and raw.raw_ticker_name_history. SQL reads the window and
+  the ticker list from there, never from hard-coded dates. config/ stays the single source.
+
+## 2026-09-29 - Staging as real tables with primary keys
+- stg.stg_price_daily (PK ticker, trade_date) and stg.stg_calendar (PK trade_date), loaded by a
+  TRUNCATE + INSERT script in one transaction. A duplicate row makes the insert fail.
+- Not views: a view would repeat the casting on every read and has no constraint to stop duplicates.
+- Prices as DECIMAL(18,4), not float: the tick-grid test compares prices exactly. The raw check
+  showed at most 2 decimals and no value that fails to convert.
