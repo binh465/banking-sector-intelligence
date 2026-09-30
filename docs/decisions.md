@@ -74,3 +74,12 @@ One entry per decision: what, why, date. Newest at the bottom.
 - Not views: a view would repeat the casting on every read and has no constraint to stop duplicates.
 - Prices as DECIMAL(18,4), not float: the tick-grid test compares prices exactly. The raw check
   showed at most 2 decimals and no value that fails to convert.
+
+## 2026-09-30 - Use VCI's adjusted prices as they are
+- The tick-grid check (`price_adjustment_check.md`) shows VCI adjusts history for cash dividends
+  (VCB and CTG switch to the grid at the 2026-07-23 ex-date) as well as share dividends and rights
+  offerings. No move beyond 7.5%, so no large event was left unadjusted.
+- So returns are computed straight from the staged closes; no own adjustment factors.
+- The Limitations item "not verified whether VCI adjusts for cash dividends" is replaced by:
+  prices are adjusted backwards by VCI, so a later download changes the history (Phase 4 risk),
+  and the check can't see sessions with prices below 10.

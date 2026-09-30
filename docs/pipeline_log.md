@@ -202,3 +202,16 @@ config snapshot in the database, staging as real tables with primary keys.
   2024-09-26 -> 2026-09-25. No ticker-date missing from the calendar or the other way round.
   raw -> stg per ticker: 497 in the window, 103 cut before it, 0 after; nothing lost.
   No non-positive price, no low/high that fails to bracket open/close, no zero-volume session.
+
+### 2.3 Price adjustment (tick grid) and the ±7% band
+- Checked with: `sql/04_quality/110_stg_price_adjustment_checks.sql`, details in `price_adjustment_check.md`.
+- 9 tickers adjusted by VCI (off grid up to their latest corporate action). STB 0% off grid:
+  no dividend, bonus or rights event in the window.
+- VCB and CTG: off grid before the 2026-07-23 cash-dividend ex-date, 0 off grid from it.
+  VCI adjusts for cash dividends.
+- 5 sessions beyond 7%, all up to 7.5% (ceiling/floor). None beyond 7.5%.
+- Ex-date cross-check (query 7): for all 9 tickers with an event, the last off-grid close is on or
+  before the session before the latest ex-date, 0 off grid from it. Cash, share, bonus and rights
+  events are all adjusted.
+- Repeated closes (`100_stg_price_checks.sql` queries 7 and 8): 27 to 79 per ticker, 50 runs of
+  3+ sessions. No repeated full bar; every run has a different volume each session. Real sessions, kept.
