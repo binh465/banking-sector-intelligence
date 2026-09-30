@@ -109,3 +109,31 @@ queries 7 and 8 (results in `pipeline_log.md`, 2.4).
   (title edited, or a different slug for the same title). But 64 ids are shared by 2 or 3 different
   articles (129 URLs). So: URL stays the key; `id_url_count` is stored; matching by id is allowed
   only when id_url_count = 1.
+
+## 2026-09-30 - Name changes in the window: STB only
+- Checked for the other 9 banks: CafeF article titles and each bank's own disclosures inside the
+  window (`sql/04_quality/200_rename_check.sql`), plus the licences re-issued in the window.
+  - Rename articles that mention these banks are about STB, or about related companies that are not
+    in scope (see below).
+  - Disclosures about names are branch or transaction-office renames. Licence changes found:
+    TCB licence 12/GP-NHNN of 2026-03-18 re-issues licence 38/GP-NHNN under the same name
+    "Ngân hàng TMCP Kỹ thương Việt Nam"
+    (https://techcombank.com/nha-dau-tu/cong-bo-thong-tin/tai-lieu-doanh-nghiep); the SHB licence
+    announced on 2026-04-17 carries the same name "Ngân hàng TMCP Sài Gòn - Hà Nội"
+    (https://cafef.vn/du-lieu/shb-2669352/shb-thong-bao-nhan-duoc-giay-phep-thanh-lap-va-hoat-dong-ngan-hang.chn).
+    SHB launched a new brand identity at its 2026 AGM; the legal name did not change.
+  - The other licence notices are titled only "thay đổi / sửa đổi / bổ sung Giấy phép" (charter
+    capital, activities, or not stated). Not opened one by one. The argument that closes the gap:
+    each bank's name at the end of the window (Vietstock, 2026-09-27) is the same name it had
+    before the window, and no article in the window reports a rename for any of the nine.
+- Result: dim_ticker SCD Type 2 has exactly one real change (STB, 2026-06-01). 10 tickers, 11 rows.
+- Renamed companies close to the 10 banks, not in scope, for the Phase 5 exclusion list:
+  - CBBank -> VCBNeo (Vietcombank subsidiary, from 2025-01-17). The name contains "VCB".
+  - OceanBank -> MBV (MB subsidiary).
+  - DongA Bank -> Vikki Bank (HDBank subsidiary, February 2025).
+  - GPBank -> Ngân hàng Thương mại TNHH MTV Kỷ Nguyên Thịnh Vượng (VPBank subsidiary, approved October
+    2025, short name still GPBank). The name contains "Thịnh Vượng", as does VPBank's.
+  - VietinBank Securities -> Chứng khoán VietinBank (proposed late 2025); SHB Finance -> SFinance
+    (September 2026, no longer an SHB subsidiary).
+  - Sources: https://dantri.com.vn/kinh-doanh/ngan-hang-chuyen-giao-bat-buoc-cuoi-cung-chinh-thuc-doi-ten-20251008154851127.htm,
+    https://m.cafef.vn/3-4-ngan-hang-bi-chuyen-giao-bat-buoc-da-doi-ten-vi-sao-deu-tro-thanh-ngan-hang-so-188250217113544238.chn

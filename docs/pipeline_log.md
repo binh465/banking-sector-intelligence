@@ -272,3 +272,20 @@ config snapshot in the database, staging as real tables with primary keys.
   2,087 disclosures date-only. Articles per ticker from 25 (TPB) to 107 (TCB).
 - Per-ticker articles against stg_article: 387 rows (301 articles) by URL, 71 rows (48 articles)
   by article_id, 1 not matched (TCB 2025-09-17, not in the sitemap). 350 distinct articles.
+
+---
+
+## Phase 3 - Dimensional model (started 2026-09-30)
+
+### 3.1 Name changes in the window
+- Checked with: `sql/04_quality/200_rename_check.sql`, web search, bank documents
+  (sources in `decisions.md`).
+- Query 1 (article titles about a rename + a bank name): 12 articles. 8 about STB
+  (2026-02-24 to 2026-06-04), the rest about CB -> VCBNeo, VietinBank Securities and
+  SHB Finance -> SFinance.
+- Query 2 (disclosures about a name or the licence, branch and office renames left out): licence
+  amendments and re-issues only; TCB (2026-03-18) and SHB (2026-04-17) re-issues keep the same name.
+- Result: STB is the only rename. dim_ticker: 10 tickers, 11 rows.
+- Side finding: STB's per-ticker list has a disclosure titled "... Giấy phép ... của MB"
+  (2025-03-18). The per-ticker list can carry an item of another bank, so it is a recall reference,
+  not ground truth, in Phase 5.
