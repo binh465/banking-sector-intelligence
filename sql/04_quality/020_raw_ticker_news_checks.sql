@@ -33,3 +33,59 @@ SELECT [ticker], [page], [item_position], [href]
 FROM raw.raw_ticker_news
 WHERE [href] NOT LIKE N'%/du-lieu/%'
   AND [href] NOT LIKE N'%-188[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]%.chn%';
+
+-- 7. Per-ticker list links vs sitemap URLs. The list uses relative links with a utm query string;
+--    the sitemap uses https://cafef.vn/... without one. Normalised: cut at '?', prefix the host.
+WITH t AS (
+    SELECT [ticker],
+           CASE WHEN [href] LIKE N'%/du-lieu/%' THEN N'disclosure' ELSE N'article' END AS kind,
+           N'https://cafef.vn' + LEFT([href], CHARINDEX(N'?', [href] + N'?') - 1)       AS url_norm,
+           TRY_CONVERT(date, LEFT([time_text], 10), 103)                                AS list_date
+    FROM raw.raw_ticker_news
+),
+f AS (
+    SELECT t.kind,
+           CASE WHEN EXISTS (SELECT 1 FROM raw.raw_article a      WHERE a.[url] = t.url_norm) THEN 1 ELSE 0 END AS in_sitemap,
+           CASE WHEN EXISTS (SELECT 1 FROM raw.raw_article_page p WHERE p.[url] = t.url_norm) THEN 1 ELSE 0 END AS page_fetched
+    FROM t
+    CROSS JOIN stg.stg_scope s
+    WHERE t.list_date BETWEEN s.start_date AND s.end_date
+)
+SELECT kind,
+       COUNT(*)          AS items_in_window,
+       SUM(in_sitemap)   AS in_sitemap,
+       SUM(page_fetched) AS page_fetched
+FROM f
+GROUP BY kind;
+
+-- 8. Articles from the per-ticker list that are not in the sitemap under the same URL.
+--    Does the article ID (the digits between the last '-' and '.chn') appear in the sitemap under
+--    another URL, e.g. a slug changed after the title was edited?
+--    NULLIF turns "no '-' found" into a NULL length, so RIGHT returns NULL instead of failing.
+WITH t AS (
+    SELECT [ticker],
+           N'https://cafef.vn' + LEFT([href], CHARINDEX(N'?', [href] + N'?') - 1) AS url_norm,
+           TRY_CONVERT(date, LEFT([time_text], 10), 103)                          AS list_date
+    FROM raw.raw_ticker_news
+    WHERE [href] NOT LIKE N'%/du-lieu/%'
+),
+miss AS (
+    SELECT t.*
+    FROM t CROSS JOIN stg.stg_scope s
+    WHERE t.list_date BETWEEN s.start_date AND s.end_date
+      AND NOT EXISTS (SELECT 1 FROM raw.raw_article a WHERE a.[url] = t.url_norm)
+),
+miss_id AS (
+    SELECT m.*, RIGHT(x.stem, NULLIF(CHARINDEX(N'-', REVERSE(x.stem)), 0) - 1) AS article_id
+    FROM miss m
+    CROSS APPLY (SELECT LEFT(m.url_norm, LEN(m.url_norm) - 4) AS stem) x
+),
+sitemap_id AS (
+    SELECT DISTINCT a.[url], RIGHT(x.stem, NULLIF(CHARINDEX(N'-', REVERSE(x.stem)), 0) - 1) AS article_id
+    FROM raw.raw_article a
+    CROSS APPLY (SELECT LEFT(a.[url], LEN(a.[url]) - 4) AS stem) x
+)
+SELECT m.[ticker], m.list_date, m.article_id, m.url_norm, s.[url] AS sitemap_url_same_id
+FROM miss_id m
+LEFT JOIN sitemap_id s ON s.article_id = m.article_id
+ORDER BY CASE WHEN s.[url] IS NULL THEN 1 ELSE 0 END, m.list_date;

@@ -83,3 +83,29 @@ One entry per decision: what, why, date. Newest at the bottom.
 - The Limitations item "not verified whether VCI adjusts for cash dividends" is replaced by:
   prices are adjusted backwards by VCI, so a later download changes the history (Phase 4 risk),
   and the check can't see sessions with prices below 10.
+
+## 2026-09-30 - News staging
+Checked first with `040_raw_article_checks.sql` queries 6 to 10 and `020_raw_ticker_news_checks.sql`
+queries 7 and 8 (results in `pipeline_log.md`, 2.4).
+- stg_article keeps every sitemap URL whose publish time falls in the window, not only the pages
+  fetched. Phase 5 matches on all titles, and the number of matched articles that fall back to
+  lastmod can be counted for Limitations.
+- A URL listed more than once (232 URLs, 25 of them with different titles): keep the row with the
+  earliest lastmod and take title, lastmod and source file from that one row. This is a fixed rule,
+  not a claim that the earliest lastmod is the publish time. `sitemap_rows` marks these URLs.
+- Publish time: article:published_time from the page if present, else lastmod; `time_source` says
+  which, `lastmod_local` is kept. The window cut uses this time. The load stops if any lastmod
+  offset isn't +07:00 (the cast to datetime2 keeps the clock time and drops the offset).
+- No NFC normalisation. Vietnamese_100_CI_AS compares precomposed and decomposed text as equal in
+  = and LIKE (tested on one word; Phase 5 re-tests the rows that are not NFC). A binary collation,
+  LEN/CHARINDEX positions, or matching in Python would still see the difference.
+- stg_ticker_news: one row per ticker per URL; URL normalised to https://cafef.vn + path without
+  the query string; kind from the /du-lieu/ path; 00:00 means date only for disclosures only.
+- URL as VARCHAR(400) primary key: all ASCII, longest 254. A clustered key holds at most 900 bytes,
+  so NVARCHAR(1000) from raw couldn't be the key. Staging joins staging only, so no implicit
+  VARCHAR/NVARCHAR conversion on the key.
+- article_id (digits before .chn) is kept as a second match key, not as the primary key.
+  48 of 49 per-ticker articles missing by URL are in the sitemap under the same id with another slug
+  (title edited, or a different slug for the same title). But 64 ids are shared by 2 or 3 different
+  articles (129 URLs). So: URL stays the key; `id_url_count` is stored; matching by id is allowed
+  only when id_url_count = 1.

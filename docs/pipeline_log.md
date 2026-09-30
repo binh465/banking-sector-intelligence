@@ -175,13 +175,15 @@ Then the checks `sql/04_quality/010` to `040`.
   2026-07-23 (450 đ/cp); make sure every price time is 00:00:00 before casting to date;
   one row per article URL; keep or cut the ~100 sessions before `base_date`.
 - Phase 3: check the other 9 tickers for name changes in the window.
-- Phase 5: match on word boundaries, normalise to NFC, decide sitemap title vs og:title,
+- Phase 5/7: count matched articles with time_source = 'lastmod' and report them apart; lastmod
+  can be days before the real publish time (2.5).
+- Phase 5: match on word boundaries, re-test the 39 non-NFC titles (no NFC step, see decisions), decide sitemap title vs og:title,
   exclusion list for subsidiaries (e.g. "VietinBank Capital"), flag pages without a publish time
   (mostly sponsored), map date-only disclosures to a session, recall against the per-ticker list.
 
 ---
 
-## Phase 2 - Staging (in progress, started 2026-09-29)
+## Phase 2 - Staging (2026-09-29 to 2026-09-30)
 
 Decisions for this phase are in `decisions.md` (2026-09-29): cut prices to the locked window,
 config snapshot in the database, staging as real tables with primary keys.
@@ -215,3 +217,58 @@ config snapshot in the database, staging as real tables with primary keys.
   events are all adjusted.
 - Repeated closes (`100_stg_price_checks.sql` queries 7 and 8): 27 to 79 per ticker, 50 runs of
   3+ sessions. No repeated full bar; every run has a different volume each session. Real sessions, kept.
+
+### 2.4 Checks before news staging
+- Checked with: `sql/04_quality/040_raw_article_checks.sql` queries 6 to 10,
+  `sql/04_quality/020_raw_ticker_news_checks.sql` queries 7 and 8.
+- Repeated URLs: 232, 25 of them with different titles in different bucket files; lastmod gap
+  between rows of one URL 0.4 h to 696 h.
+- Titles with combining marks: raw_article 39, og_title 3, ticker list 0. Vietnamese_100_CI_AS
+  treats "Thường" and its decomposed form as equal (= and LIKE); BIN2 doesn't.
+- published_time: all 10,865 values are 19 characters, yyyy-mm-ddThh:mm:ss.
+- URL: longest 254, all ASCII, all https://cafef.vn/... with no query string.
+- Per-ticker list vs sitemap, items inside the window: 459 articles, 387 found by URL, 312 with a
+  fetched page; 2,274 disclosures, none in the sitemap (disclosures live under /du-lieu/).
+- The 72 article rows not found by URL are 49 articles; 48 are in the sitemap under the same id with
+  another slug, 1 is not in the sitemap at all (TCB, 2025-09-17, id 188250916101159515).
+- The 75 found articles without a fetched page have titles that don't pass the prefilter
+  (no ticker, bank name or "ngân hàng"): a first look at title-only recall for Phase 5.
+- article_id: 248,415 URLs, 248,350 ids, all digits, 15 to 18 long. 64 ids are shared by 2 or 3
+  different articles (129 URLs). None of the per-ticker list ids is among them.
+
+### 2.5 News staging
+- Run: `sql/01_ddl/110_stg_news.sql`, `sql/02_load/110_load_stg_news.sql`
+- Checked with: `sql/04_quality/120_stg_news_checks.sql`
+- stg_article 246,056 rows. raw 248,415 distinct URLs = 1,421 before the window + 246,056 in it
+  + 938 after it (the extra sitemap buckets at both ends).
+- Time source: page 10,741; lastmod with a fetched page but no page time 92; lastmod without a
+  fetched page 235,223.
+- Repeated URLs: 230 with 2 rows (23 with another title in raw), 2 with 3 rows (both).
+- Shared article_id inside the window: 64 ids, 127 URLs; 245,993 distinct ids.
+- Page time vs lastmod on the 10,741 pages: different date 1,136; lastmod earlier than the page
+  time 3,462; range -480 h to +1,029 h.
+- Breakdown (query 5b), lastmod minus page time:
+
+  | Bucket | Pages | Different date |
+  |---|---|---|
+  | lastmod > 1 h earlier | 1,352 | 482 |
+  | lastmod 1 min to 1 h earlier | 2,006 | 83 |
+  | lastmod < 1 min earlier | 104 | 1 |
+  | 0 to 1 h later | 5,774 | 0 |
+  | 1 h to 24 h later | 1,204 | 269 |
+  | 24 h or more later | 301 | 301 |
+
+- Rounding to the minute explains only 104 pages. lastmod is off in both directions:
+  - Earlier (query 5c): page times on round hours (08:00, 07:45, 13:30), lastmod up to 20 days
+    before, several PR-style titles. Looks like articles saved first and published at a set time.
+  - Later (query 5c): the 10 largest are pages from February 2026 whose lastmod is 2026-03-16
+    16:44-16:47 or 2026-03-17 09:14. Looks like a batch re-save that moved lastmod.
+  - Both are readings of the top rows, not checked against CafeF.
+- Consequence: for an article that falls back to lastmod, the time can be later than the real
+  publish time or earlier. Earlier is the risky side: the article would look like it came before a
+  price move it actually followed.
+- Titles with combining marks: sitemap 39, og_title 3 (all inside the window).
+- stg_ticker_news 2,733 rows = raw items inside the window. 459 articles, 2,274 disclosures,
+  2,087 disclosures date-only. Articles per ticker from 25 (TPB) to 107 (TCB).
+- Per-ticker articles against stg_article: 387 rows (301 articles) by URL, 71 rows (48 articles)
+  by article_id, 1 not matched (TCB 2025-09-17, not in the sitemap). 350 distinct articles.
