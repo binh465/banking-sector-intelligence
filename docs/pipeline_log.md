@@ -289,3 +289,34 @@ config snapshot in the database, staging as real tables with primary keys.
 - Side finding: STB's per-ticker list has a disclosure titled "... Giấy phép ... của MB"
   (2025-03-18). The per-ticker list can carry an item of another bank, so it is a recall reference,
   not ground truth, in Phase 5.
+
+### 3.2 dim_date
+- Run: `sql/01_ddl/300_dw_dim_date.sql`, `sql/03_transform/300_load_dim_date.sql`
+- Checked with: `sql/04_quality/300_dim_date_checks.sql`
+- 730 days = days in the window, 2024-09-26 to 2026-09-25, no duplicate date.
+- 497 trading days = sessions in stg_calendar; session_seq 1 to 497, no gap, no break.
+- No calendar session missing, no trading day outside the calendar, no trading day on a weekend.
+- 730 - 208 weekend days - 497 sessions = 25 weekdays without a session (holidays; list in query 6).
+- day_of_week 1 = Monday. Thursday and Friday have 105 days, the others 104: the window starts on a
+  Thursday and ends on a Friday (104 weeks + 2 days).
+- session_seq_on_or_after was proposed and dropped; Phase 5 finds the reaction session itself.
+
+### 3.3 dim_ticker
+- Run: `sql/01_ddl/310_dw_dim_ticker.sql`, `sql/03_transform/310_load_dim_ticker.sql`
+- Checked with: `sql/04_quality/310_dim_ticker_checks.sql`
+- 11 rows for 10 tickers; one current version per ticker; STB has 2 versions (keys 6 and 7).
+- No gap or overlap between versions, every ticker covered from 1900-01-01 to 9999-12-31, every
+  (ticker, session) in staging matches exactly one version.
+- STB sessions: 415 under the old name (2024-09-26 to 2026-05-29), 82 under the new name
+  (2026-06-01 to 2026-09-25); 415 + 82 = 497.
+
+### 3.4 dim_article
+- Run: `sql/01_ddl/320_dw_dim_article.sql`, `sql/03_transform/320_load_dim_article.sql`
+- Checked with: `sql/04_quality/320_dim_article_checks.sql`
+- 248,330 rows: 246,056 articles (page time 10,741, lastmod 235,315) = stg_article, and 2,274
+  disclosures = distinct disclosure URLs in stg_ticker_news. No disclosure URL is listed under two
+  tickers. Every staging URL is in the dimension and every dimension row has a staging source.
+- Disclosures: 2,087 date-only, 187 with a time. The ones with a time all fall on or after
+  2025-04-14; before that date every disclosure is date-only. Input for mapping disclosures to a
+  session in Phase 5.
+- Every item's publish date is in dim_date.
