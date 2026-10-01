@@ -275,7 +275,7 @@ config snapshot in the database, staging as real tables with primary keys.
 
 ---
 
-## Phase 3 - Dimensional model (started 2026-09-30)
+## Phase 3 - Dimensional model (2026-09-30 to 2026-10-01)
 
 ### 3.1 Name changes in the window
 - Checked with: `sql/04_quality/200_rename_check.sql`, web search, bank documents
@@ -320,3 +320,27 @@ config snapshot in the database, staging as real tables with primary keys.
   2025-04-14; before that date every disclosure is date-only. Input for mapping disclosures to a
   session in Phase 5.
 - Every item's publish date is in dim_date.
+
+### 3.5 fact_price_daily
+- Grain: one row per ticker per trading session (periodic snapshot).
+- Run: `sql/01_ddl/330_dw_fact_price_daily.sql`, `sql/03_transform/330_load_fact_price_daily.sql`
+- Checked with: `sql/04_quality/330_fact_price_daily_checks.sql`
+- 4,970 rows = stg_price_daily. No duplicate (ticker, session) when grouped by the durable ticker;
+  every ticker has as many rows as trading days in dim_date; no row on a non-trading day; every
+  row carries the ticker version valid on its date; values equal staging in both directions (EXCEPT).
+- STB: 415 rows on key 6 (to 2026-05-29), 82 on key 7 (from 2026-06-01).
+- From here, TRUNCATE on dim_date / dim_ticker fails (referenced by foreign keys); dimension reloads
+  move to the Phase 4 procedures.
+
+### 3.6 fact_news (structure only)
+- Grain: one row per news item per bank (of the 10) the item is tied to. Factless.
+- Run: `sql/01_ddl/340_dw_fact_news.sql`. Rows come in Phase 5.
+- dim_date in two roles: publish_date_key, reaction_date_key (nullable: the reaction session can
+  fall after the window, and dim_date stays continuous, so no placeholder date row).
+- ticker_key = version valid on the publish date. match_tier (0 = disclosure from the bank's own
+  list, 1-3 = title rules) and banks_mentioned on the fact row; is_sector_news is a persisted
+  computed column (banks_mentioned >= 3), so the flag can't disagree with the count.
+- Checks ready in `sql/04_quality/340_fact_news_checks.sql` (grain by durable ticker, the two date
+  roles, ticker version on the publish date).
+- Structure checked: 4 foreign keys (article, ticker, publish date, reaction date);
+  is_sector_news is persisted.
