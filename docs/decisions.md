@@ -137,3 +137,24 @@ queries 7 and 8 (results in `pipeline_log.md`, 2.4).
     (September 2026, no longer an SHB subsidiary).
   - Sources: https://dantri.com.vn/kinh-doanh/ngan-hang-chuyen-giao-bat-buoc-cuoi-cung-chinh-thuc-doi-ten-20251008154851127.htm,
     https://m.cafef.vn/3-4-ngan-hang-bi-chuyen-giao-bat-buoc-da-doi-ten-vi-sao-deu-tro-thanh-ngan-hang-so-188250217113544238.chn
+
+## 2026-10-01 - Prices revised by VCI: restate the whole ticker and log it
+- VCI multiplies all earlier prices of a ticker at every corporate action (25 events in the window,
+  `price_adjustment_check.md`), so a later download usually changes prices already in the warehouse.
+- Appending only new sessions would mix two adjustment factors in one series and create a false
+  jump at the joint, which Phase 6 would flag as an abnormal session.
+- Rule in `dw.sp_load_fact_price_daily`: compare every staged session that is already in the fact.
+  If any OHLCV value differs for a ticker, delete all fact rows of that ticker and insert its staged
+  history again; every changed session goes to `dw.price_revision_log` (old and new values, run time).
+  Exact comparison on DECIMAL, no tolerance: VCI rounds to 2 decimals and only changes a value when
+  the factor changes.
+- Not chosen: keeping every price version (every view and DAX measure would need a version filter;
+  too heavy for ~5,000 rows), warning only (leaves the false jump in place).
+- Cost: results from before a restatement can't be reproduced; the log says what changed and when.
+
+## 2026-10-01 - Testing procedures with hand-edited staging data
+- Allowed only inside one explicit transaction that covers the staging edit and the procedure runs,
+  ended with ROLLBACK, so staging, dw and price_revision_log all return to their state before the
+  test. Procedures therefore never commit or roll back a transaction they did not open.
+- Identity values used inside a rolled-back transaction are not given back (gaps in keys and log
+  ids). Harmless; noted so a gap is not mistaken for lost rows.

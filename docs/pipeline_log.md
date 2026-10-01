@@ -344,3 +344,43 @@ config snapshot in the database, staging as real tables with primary keys.
   roles, ticker version on the publish date).
 - Structure checked: 4 foreign keys (article, ticker, publish date, reaction date);
   is_sector_news is persisted.
+
+---
+
+## Phase 4 - Load procedures and incremental load (2026-10-01)
+
+Decisions in `decisions.md` (2026-10-01): revised prices restate the whole ticker and are logged;
+procedure tests run inside a transaction that is rolled back.
+
+### 4.1 Procedures
+- `sql/01_ddl/400_dw_price_revision_log.sql`
+- `sql/03_transform/400_sp_load_dim_date.sql` (MERGE on date_key)
+- `sql/03_transform/410_sp_load_dim_ticker.sql` (MERGE on ticker + valid_from, SCD2; written by Binh)
+- `sql/03_transform/420_sp_load_dim_article.sql` (MERGE on url, Type 1)
+- `sql/03_transform/430_sp_load_fact_price_daily.sql` (re-key, revisions, restatement, insert; @to_date)
+- All four open a transaction only when called outside one, and never commit or roll back a
+  caller's transaction.
+- First run on the Phase 3 data: every count 0.
+
+### 4.2 Tests
+- Run: `sql/04_quality/400_phase4_tests.sql` (one window; each test rolled back).
+- Test 1, all four procedures twice: every count 0 in both runs.
+- Test 2, incremental: fact emptied, run with @to_date = 2025-09-30 -> 2,520 rows (10 x 252
+  sessions), last date 2025-09-30; second run -> +2,450 = 4,970. EXCEPT with staging: 0 both ways.
+- Test 3, revised prices: VCB staged prices before 2026-03-02 x 0.98 (353 sessions). Load: 353
+  revised sessions logged (2024-09-26 to 2026-02-27, e.g. close 60.92 -> 59.70), 1 ticker restated,
+  497 rows deleted and 497 inserted; every ticker's fact close equals staging.
+- Test 4, new rename: VCB renamed from 2026-07-01 in the raw config. dim_ticker: 1 insert (key 12),
+  1 update (key 10 closed at 2026-06-30). Fact: 60 rows re-keyed; VCB = 437 rows on key 10 + 60 on
+  key 12 = 497. No duplicate (ticker, session). The filtered unique index on current versions
+  raised no error.
+- Test 5, state after all tests: row counts and checksums of dim_ticker, fact_price_daily,
+  price_revision_log, raw_ticker_config, raw_ticker_name_history, stg_price_daily equal the
+  snapshot taken before.
+- Identity values used inside the rolled-back tests are not returned: the next real dim_ticker
+  version will get key 13, not 12.
+
+### 4.3 One call for the whole warehouse load
+- `sql/03_transform/490_sp_load_dw.sql`: dw.sp_load_dw runs dim_date, dim_ticker, dim_article,
+  fact_price_daily in that order inside one transaction.
+- `EXEC dw.sp_load_dw;` on the loaded warehouse: every count 0.
