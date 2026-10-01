@@ -1,3 +1,5 @@
+-- Superseded by dw.sp_load_dim_article (420_sp_load_dim_article.sql). Kept for history: TRUNCATE fails now that
+-- fact_news references dw.dim_article (foreign key), and it would hand out new article_keys.
 -- Load dw.dim_article from stg.stg_article (articles) and stg.stg_ticker_news (disclosures).
 -- Full reload. As with dim_ticker, TRUNCATE hands out new article_keys: fine until fact_news
 -- points here; Phase 4 replaces this with a MERGE on url.

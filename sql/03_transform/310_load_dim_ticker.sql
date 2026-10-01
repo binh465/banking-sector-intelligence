@@ -1,3 +1,5 @@
+-- Superseded by dw.sp_load_dim_ticker (410_sp_load_dim_ticker.sql). Kept for history: TRUNCATE fails now that
+-- fact tables reference dw.dim_ticker, and it would hand out new ticker_keys.
 -- Load dw.dim_ticker from the config snapshot (raw.raw_ticker_config, raw.raw_ticker_name_history).
 -- A ticker without name history gets one version; a ticker with history gets one per entry.
 -- Full reload. TRUNCATE also resets the identity, so every reload hands out new ticker_keys: fine

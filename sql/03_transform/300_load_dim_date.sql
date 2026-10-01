@@ -1,3 +1,5 @@
+-- Superseded by dw.sp_load_dim_date (400_sp_load_dim_date.sql). Kept for history: TRUNCATE fails now that
+-- fact tables reference dw.dim_date.
 -- Load dw.dim_date from stg.stg_scope (the window) and stg.stg_calendar (the sessions).
 -- Full reload in one transaction. TRUNCATE stops working once a fact table has a foreign key to
 -- dim_date; Phase 4 replaces this script with a procedure.

@@ -1,3 +1,5 @@
+-- Superseded by dw.sp_load_fact_price_daily (430_sp_load_fact_price_daily.sql). Kept for history: a full
+-- reload would skip the revision check and the price_revision_log.
 -- Load dw.fact_price_daily from stg.stg_price_daily.
 -- ticker_key: the dim_ticker version whose valid_from..valid_to contains the session.
 -- date_key: the dim_date row of the session.
