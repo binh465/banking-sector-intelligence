@@ -244,4 +244,21 @@ queries 7 and 8 (results in `pipeline_log.md`, 2.4).
   sampled (the "MB" stratum is oversampled).
 - The automatic sector flag (3+ banks named) is compared with is_main_subject afterwards, to see how
   often the flag and the human label disagree.
+- Labels are set from the title alone (the matching rules only see the title). Rules for edge cases,
+  fixed before labelling (2026-10-04):
+
+  | case | is_correct | is_main_subject |
+  |---|---|---|
+  | A. Bank only takes part in another party's story ("Company X borrows from VCB") | 1 | 0 |
+  | B. Bank carries out the action ("VCB lends to company X") | 1 | 1 |
+  | C1. Two banks as equal subjects | 1 | 1 each |
+  | C2. One main bank, the other only context | 1 | 1 / 0 |
+  | C3. Main subject cannot be told from the title | 1 | 0, with a note |
+  | D. List or ranking of banks with no main bank (a ranking led by a named bank is C2) | 1 | 0 |
+  | E. Item about the bank's own stock | 1 | 1 |
+  | F. Name means a subsidiary or other unit, another bank with a similar name, or another sense | 0 | 0 |
+  | G. Former name or former brand of the same bank | 1 | according to the title, applying rules A-H |
+  | H. Bank is the direct target of an action (fined, inspected, rated) | 1 | 1 |
+
+  Cases outside the table get a note; notes are read after labelling and the table extended if needed.
 

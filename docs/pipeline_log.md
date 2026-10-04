@@ -470,4 +470,10 @@ the next session; "MB" moves to tier 2 with two guards; same-session cutoff 14:4
   results into #temp, session waits before/after): each statement 3-346 ms; the CREATE OR ALTER VIEW
   batch alone under 1 s; no open transaction. The slow run was not seen again and its cause was not
   observed. If it comes back: Part B of 521 in a second tab while it runs.
+- Export: `docs/precision_sample.csv`, 300 rows (50 / 75 / 75 / 100), UTF-8 with BOM, committed as
+  exported. A first Excel save as "CSV (Comma delimited)" wrote Windows-1252 and turned 2,307
+  characters into "?"; file deleted and exported again. Saved as "CSV UTF-8": only
+  publish_time_local changed (date format), url / ticker / title unchanged.
+- Round trip: `load_precision_labels.py` -> raw.raw_precision_label 300 rows (separator ','); 520
+  query 3: 0 rows both ways.
 
