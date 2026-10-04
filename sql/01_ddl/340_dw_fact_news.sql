@@ -1,10 +1,10 @@
 -- dw.fact_news: factless fact table.
 -- Grain: one row per news item per bank (of the 10) the item is tied to.
--- Filled in Phase 5 (matching rules); Phase 3 only creates the structure.
+-- Loaded by sql/03_transform/510_sp_load_fact_news.sql (Phase 5).
 -- dim_date plays two roles:
 --   publish_date_key   the date the item was published (Vietnam time)
 --   reaction_date_key  the first session that can react to it: the publish date if published
---                      before 15:00 on a trading day, else the next trading day. NULL when that
+--                      before 14:45 on a trading day, else the next trading day. NULL when that
 --                      session falls after the window (no row in dim_date for it).
 -- ticker_key is the dim_ticker version valid on the publish date (the name in use when the item
 -- was written). Analysis over time joins on the durable ticker.

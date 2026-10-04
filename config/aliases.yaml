@@ -1,0 +1,153 @@
+# Bank names used to tie news titles to banks (Phase 5). Reviewed 2026-10-02 (decisions.md).
+# Built from the crawled titles, not guessed: docs/alias_survey.md has the counts behind each entry.
+#
+# How the entries are used (decisions.md, 2026-10-02):
+#   tier 1  ticker of an in-scope bank, upper case, whole word
+#   tier 2  strong: matches on its own
+#   tier 3  weak: matches only when the title also has one of context_words (no entry at the moment)
+# Every match is on whole words: the character before and after must not be a letter or a digit.
+# Matching is case-insensitive unless an entry says case_sensitive: true.
+# exclusions are cut out of the title before any matching and before counting banks, so a
+# subsidiary or the regulator never counts as the bank whose name it contains.
+# Banks with in_scope: false never get a fact_news row; they only count in banks_mentioned.
+
+context_words:
+  - ngân hàng
+  - nhà băng
+
+exclusions:
+  # regulator, not a commercial bank
+  - Ngân hàng Nhà nước
+  - {text: NHNN, case_sensitive: true}
+  # securities, finance and insurance companies named after a bank: news about a subsidiary is
+  # not counted for the parent bank
+  - VPBankS
+  - VPBank Securities
+  - Chứng khoán VPBank
+  - FE Credit
+  - Chứng khoán VietinBank
+  - VietinBank Securities
+  - VietinBank Capital
+  - {text: VCBS, case_sensitive: true}
+  - Chứng khoán Vietcombank
+  - {text: TCBS, case_sensitive: true}
+  - Chứng khoán Techcombank
+  - Chứng khoán Kỹ Thương
+  - {text: MBS, case_sensitive: true}
+  - Chứng khoán MB
+  - MB Ageas
+  - MB Life
+  - MB Capital
+  - {text: ACBS, case_sensitive: true}
+  - Chứng khoán ACB
+  - SHB Finance
+  - SHBFinance
+  - Chứng khoán Tiên Phong
+  - HD Saison
+  - Sacombank-SBR
+  - Sacombank-SBJ
+  - Sacombank-SBL
+  # not a bank at all
+  - SoftBank
+
+banks:
+  # ---- the 10 banks in scope ----
+  - ticker: VCB
+    in_scope: true
+    strong:
+      - Vietcombank
+      - Ngân hàng Ngoại thương
+      - Ngân hàng TMCP Ngoại thương Việt Nam
+  - ticker: CTG
+    in_scope: true
+    strong:
+      - VietinBank
+      - Ngân hàng TMCP Công Thương Việt Nam
+      # not "Ngân hàng Công thương": also names China's ICBC in at least one title
+  - ticker: TCB
+    in_scope: true
+    strong:
+      - Techcombank
+      - Ngân hàng Kỹ thương
+      - Ngân hàng TMCP Kỹ thương Việt Nam
+  - ticker: MBB
+    in_scope: true
+    strong:
+      - MBBank
+      - MB Bank
+      - Ngân hàng Quân đội
+      - Ngân hàng TMCP Quân đội
+      # upper case only; "8 MB" (a file size) is dropped by the after-a-number rule in the matching SQL
+      - {text: MB, case_sensitive: true}
+  - ticker: ACB
+    in_scope: true
+    strong:
+      - Ngân hàng Á Châu
+      - Ngân hàng TMCP Á Châu
+  - ticker: VPB
+    in_scope: true
+    strong:
+      - VPBank
+      - Ngân hàng TMCP Việt Nam Thịnh Vượng
+  - ticker: STB
+    in_scope: true
+    strong:
+      - Sacombank
+      - Ngân hàng Sài Gòn Thương Tín
+      - Ngân hàng TMCP Sài Gòn Thương Tín
+      - Ngân hàng Sài Gòn Tài Lộc
+      - Ngân hàng TMCP Sài Gòn Tài Lộc
+  - ticker: HDB
+    in_scope: true
+    strong:
+      - HDBank
+      - Ngân hàng TMCP Phát triển Thành phố Hồ Chí Minh
+  - ticker: TPB
+    in_scope: true
+    strong:
+      - TPBank
+      - Ngân hàng TMCP Tiên Phong
+      # not "Tiên Phong" or "Ngân hàng Tiên Phong": "ngân hàng tiên phong" means "a pioneering bank"
+  - ticker: SHB
+    in_scope: true
+    strong:
+      - Ngân hàng Sài Gòn - Hà Nội
+      - Ngân hàng Sài Gòn – Hà Nội
+      - Ngân hàng TMCP Sài Gòn - Hà Nội
+      - Ngân hàng TMCP Sài Gòn – Hà Nội
+
+  # ---- banks outside the 10: counted in banks_mentioned only ----
+  - {id: BIDV,     in_scope: false, strong: [{text: BIDV, case_sensitive: true}, Ngân hàng Đầu tư và Phát triển]}
+  - {id: AGRIBANK, in_scope: false, strong: [Agribank]}
+  - {id: LPBANK,   in_scope: false, strong: [LPBank, LienVietPostBank, Ngân hàng Lộc Phát]}
+  - {id: EXIMBANK, in_scope: false, strong: [Eximbank]}
+  - {id: VIB,      in_scope: false, strong: [{text: VIB, case_sensitive: true}]}
+  - {id: MSB,      in_scope: false, strong: [{text: MSB, case_sensitive: true}]}
+  - {id: OCB,      in_scope: false, strong: [{text: OCB, case_sensitive: true}]}
+  - {id: NCB,      in_scope: false, strong: [{text: NCB, case_sensitive: true}]}
+  - {id: SCB,      in_scope: false, strong: [{text: SCB, case_sensitive: true}]}
+  - {id: SEABANK,  in_scope: false, strong: [SeABank]}
+  - {id: BVBANK,   in_scope: false, strong: [BVBank, Ngân hàng Bản Việt]}
+  - {id: ABBANK,   in_scope: false, strong: [ABBank]}
+  - {id: KLB,      in_scope: false, strong: [KienlongBank]}
+  - {id: VIETBANK, in_scope: false, strong: [Vietbank]}
+  - {id: VAB,      in_scope: false, strong: [VietABank, Viet A Bank]}
+  - {id: NAB,      in_scope: false, strong: [Nam A Bank]}
+  - {id: BAB,      in_scope: false, strong: [Bac A Bank]}
+  - {id: PGB,      in_scope: false, strong: [PGBank]}
+  - {id: PVCB,     in_scope: false, strong: [PVcomBank]}
+  - {id: SGB,      in_scope: false, strong: [Saigonbank]}
+  - {id: BVB,      in_scope: false, strong: [BaoViet Bank]}
+  # renamed banks taken over by banks in scope (decisions.md, 2026-09-30); separate banks here
+  - {id: VCBNEO,   in_scope: false, strong: [VCBNeo, CBBank, Ngân hàng Xây dựng]}
+  - {id: MBV,      in_scope: false, strong: [{text: MBV, case_sensitive: true}, OceanBank, Ngân hàng Đại Dương]}
+  - {id: VIKKI,    in_scope: false, strong: [Vikki Bank, Vikki, DongA Bank, Ngân hàng Đông Á]}
+  - {id: GPBANK,   in_scope: false, strong: [GPBank, Ngân hàng Dầu khí Toàn cầu]}
+  # foreign banks with branches or subsidiaries in Vietnam, counted as banks
+  - {id: HSBC,     in_scope: false, strong: [{text: HSBC, case_sensitive: true}]}
+  - {id: UOB,      in_scope: false, strong: [{text: UOB, case_sensitive: true}]}
+  - {id: SHINHAN,  in_scope: false, strong: [Shinhan Bank, Shinhan]}
+  - {id: SCVN,     in_scope: false, strong: [Standard Chartered]}
+  - {id: WOORI,    in_scope: false, strong: [Woori]}
+  - {id: MAYBANK,  in_scope: false, strong: [Maybank]}
+  - {id: CITI,     in_scope: false, strong: [Citibank]}

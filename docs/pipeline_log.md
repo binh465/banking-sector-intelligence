@@ -384,3 +384,82 @@ procedure tests run inside a transaction that is rolled back.
 - `sql/03_transform/490_sp_load_dw.sql`: dw.sp_load_dw runs dim_date, dim_ticker, dim_article,
   fact_price_daily in that order inside one transaction.
 - `EXEC dw.sp_load_dw;` on the loaded warehouse: every count 0.
+
+---
+
+## Phase 5 - Matching news to banks (from 2026-10-02)
+
+Decisions in `decisions.md` (2026-10-02): alias table in three tiers; date-only disclosures react on
+the next session; "MB" moves to tier 2 with two guards; same-session cutoff 14:45.
+
+### 5.1 Alias table
+- Survey: `sql/04_quality/500_alias_discovery.sql`, notes in `docs/alias_survey.md`.
+- `config/aliases.yaml` -> `ingest/load_aliases.py` -> `raw.raw_alias` (107 rows)
+  -> `sql/02_load/120_load_stg_alias.sql` -> stg_bank 42 (10 in scope, 32 outside),
+  stg_alias 86, stg_alias_context 2, stg_alias_exclusion 29.
+- Terms by tier: in scope tier 1 10 terms, tier 2 30 terms; outside banks tier 2 46 terms;
+  no tier 3 entry.
+
+### 5.2 Title matching
+- `sql/03_transform/500_match_articles.sql` -> `stg.stg_article_bank_match`.
+- In-scope tier 1: 792 article-bank pairs (747 articles); tier 2: 3,813 pairs (2,721 articles).
+  Outside banks: 2,951 pairs (2,586 articles).
+- Articles per bank: ACB 419, CTG 640, HDB 313, MBB 514, SHB 240, STB 472, TCB 489, TPB 171,
+  VCB 830, VPB 517. MBB by term: MB 457, MBBank 35, MBB 16.
+- Titles with "MB" (upper case, whole word) not matched to MBB: 20, all read. 18 exclusions,
+  1 file size ("8 MB"), 1 bank title ("Ngân hàng BIG5 MB") dropped by the number rule. Rule changed
+  to need a digit not glued to a letter; rerun: tier 2 +1 pair (article 108797 -> MBB, term MB),
+  everything else unchanged.
+- Banks named per article (all banks): 1 bank 4,589 articles (2,614 with an in-scope bank),
+  2: 208, 3: 193, 4: 171, 5: 59, 6: 24, 7: 95, 8: 6.
+- Checks: `sql/04_quality/510_match_checks.sql`.
+
+### 5.3 fact_news
+- `sql/03_transform/510_sp_load_fact_news.sql` (full rebuild from the match table and the
+  disclosure lists; reaction session with the 14:45 cutoff).
+- `EXEC dw.sp_load_fact_news;` twice: second run deleted 6,879, inserted 6,879, outside_window 0.
+- By source: 4,605 article pairs (tier 1-2) = in-scope rows in stg_article_bank_match;
+  2,274 disclosure pairs (tier 0) = disclosure rows in stg_ticker_news.
+- Checks: `sql/04_quality/340_fact_news_checks.sql` queries 1-12. Queries 1-4 and 7-9 return no
+  rows; query 6 (pairs, EXCEPT both ways) 0 and 0.
+- Rows by tier and sector flag (query 5):
+
+  | match_tier | is_sector_news | rows | items | no reaction session |
+  |---|---|---|---|---|
+  | 0 | 0 | 2,274 | 2,274 | 4 |
+  | 1 | 0 | 665 | 649 | 0 |
+  | 1 | 1 | 127 | 98 | 0 |
+  | 2 | 0 | 2,236 | 2,177 | 6 |
+  | 2 | 1 | 1,577 | 544 | 7 |
+
+  Every disclosure is on one bank's list only (2,274 rows, 2,274 items); none is sector news.
+- Reaction session, distinct items (query 10):
+
+  | item_type | has_time | same day | later session | after window |
+  |---|---|---|---|---|
+  | article | 1 | 1,487 | 1,874 | 6 |
+  | disclosure | 0 | 0 | 2,087 | 0 |
+  | disclosure | 1 | 41 | 142 | 4 |
+
+- Items published 14:45-15:00 on a trading day, moved to the next session by the 14:45 cutoff
+  (query 11): 60.
+- Per bank (query 12): rows / not sector / sector / disclosures
+
+  | ticker | rows | not sector | sector | disclosures |
+  |---|---|---|---|---|
+  | ACB | 527 | 460 | 67 | 108 |
+  | CTG | 830 | 459 | 371 | 190 |
+  | HDB | 618 | 474 | 144 | 305 |
+  | MBB | 932 | 708 | 224 | 418 |
+  | SHB | 474 | 445 | 29 | 234 |
+  | STB | 639 | 487 | 152 | 167 |
+  | TCB | 818 | 703 | 115 | 329 |
+  | TPB | 328 | 301 | 27 | 157 |
+  | VCB | 969 | 539 | 430 | 139 |
+  | VPB | 744 | 599 | 145 | 227 |
+
+### 5.4 Precision sample
+- `sql/01_ddl/070_raw_precision_label.sql`, `sql/04_quality/520_precision_sample.sql`
+  (view stg.v_precision_sample), `ingest/export_precision_sample.py`,
+  `ingest/load_precision_labels.py`.
+

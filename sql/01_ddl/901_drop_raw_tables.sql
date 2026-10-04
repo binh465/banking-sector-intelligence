@@ -25,4 +25,6 @@ GO
 -- DROP TABLE IF EXISTS raw.raw_scope;
 -- DROP TABLE IF EXISTS raw.raw_ticker_config;
 -- DROP TABLE IF EXISTS raw.raw_ticker_name_history;
+-- DROP TABLE IF EXISTS raw.raw_alias;
+-- DROP TABLE IF EXISTS raw.raw_precision_label;
 -- GO

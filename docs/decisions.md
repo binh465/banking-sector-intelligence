@@ -158,3 +158,90 @@ queries 7 and 8 (results in `pipeline_log.md`, 2.4).
   test. Procedures therefore never commit or roll back a transaction they did not open.
 - Identity values used inside a rolled-back transaction are not given back (gaps in keys and log
   ids). Harmless; noted so a gap is not mistaken for lost rows.
+
+## 2026-10-02 - Alias table: three tiers, built from the titles
+- Aliases come from what CafeF titles actually say (`sql/04_quality/500_alias_discovery.sql`),
+  kept in `config/aliases.yaml` and loaded into the database.
+- Tier 1: the ticker, upper case, as a whole word.
+- Tier 2 (strong): the full legal name, and brand names that mean only that bank (e.g. Vietcombank,
+  Techcombank). Matches on its own. The roadmap names only the full name here; brand names are added
+  because titles almost never use the legal name.
+- Tier 3 (weak): short names that are also common words or shared with other entities (e.g.
+  "Tiên Phong", "Quân đội", "Thịnh Vượng", "MB"). Matches only when the title also has a context
+  word ("ngân hàng", ...).
+- Banks outside the 10 are in the same table with in_scope = false: they never get a fact_news row
+  but count in banks_mentioned (sector-news flag).
+- An exclusion list removes phrases that contain an alias but name another entity (subsidiaries such
+  as VCBNeo or Chứng khoán VietinBank, the State Bank, ministries) before matching.
+- Reviewed 2026-10-02:
+  - News about a subsidiary (securities, finance, insurance companies named after a bank) is not
+    counted for the parent bank; those names are on the exclusion list.
+  - "Ngân hàng Công thương" is not an alias of CTG: it also names China's ICBC. CTG keeps VietinBank
+    and the full legal name.
+  - Foreign banks operating in Vietnam (HSBC, UOB, Shinhan, Standard Chartered, Woori, Maybank,
+    Citibank) count in banks_mentioned like other banks outside the 10.
+- From the survey (`docs/alias_survey.md`): brand names carry the matching; bare short Vietnamese
+  names (Tiên Phong, Tài Lộc, Thịnh Vượng, Công Thương, Á Châu) are left out because they are mostly
+  common words; "Ngân hàng + name" is a strong alias where it is unambiguous. Tier 3 ends up with one
+  weak alias: "MB" (upper case).
+
+## 2026-10-02 - Reaction session for date-only disclosures: the next session
+- 2,087 disclosures carry a date and no time (shown as 00:00). They are mapped as if published after
+  15:00: reaction session = first trading session after that date.
+- Why: if the guess is wrong in this direction, a link is lost (the item lands one session late);
+  the other guess (same-day session) would, when wrong, place an item before a price move it actually
+  followed, which is look-ahead bias.
+- Items with a time follow the cutoff rule: before the cutoff on a trading day -> that session;
+  otherwise the next session. Cutoff 14:45, not 15:00 (entry below). has_time = 0 rows stay identifiable in dim_article for separate reporting.
+
+## 2026-10-02 - "MB" moves from tier 3 to tier 2, with two guards
+- With the context-word rule, 239 titles with "MB" (upper case, whole word) were not matched to MBB.
+  In 40 of them read by hand, 36 named the bank; the others were a file size ("8 MB"), MB Life,
+  MB Capital, and one already excluded (Chứng khoán MB). 150 of the 239 name no other bank: single-bank
+  news about MB, the kind Phase 7 needs.
+- So "MB" (case-sensitive) is a strong alias. Guards: "MB Life" and "MB Capital" join the exclusions,
+  and any case-sensitive alias right after a number is dropped (`500_match_articles.sql`).
+- Tier 3 now has no entry; the rule stays in the code. The precision sample gets a separate stratum
+  for pairs matched through "MB".
+- Check after the change: 20 titles with "MB" (upper case, whole word) still not matched to MBB, all
+  read. 18 are exclusions (Chứng khoán MB, MB Capital, MB Ageas Life, MB Life), 1 is a file size
+  ("8 MB"), 1 is the bank: "Ngân hàng BIG5 MB", dropped because "BIG5" ends in a digit. The number
+  rule now needs the digit not to follow a letter. The rule touches no other case-sensitive term.
+
+## 2026-10-02 - Same-session cutoff at 14:45, not 15:00
+- Phases 1-4 used 15:00, the end of the trading day. The closing price is fixed earlier, at the end of
+  the closing auction (ATC, 14:30-14:45); 14:45-15:00 is put-through trading only and does not move
+  the close.
+- With 15:00, an item published at 14:50 would be tied to a close that was already set: the item
+  would sit before a price move it came after. 14:45 removes that case. An item during the ATC
+  (14:30-14:45) can still change the close, so it stays on the same session.
+- The Phase 1 lastmod-vs-page measurement (`030_lastmod_sample_analysis.sql`) keeps 15:00; it compares
+  two timestamps of the same article, not an item against a closing price.
+- How many items the choice moves: `340_fact_news_checks.sql` query 11.
+
+## 2026-10-03 - Precision sample: strata, labels, two measures
+- Sample of 300 item-bank pairs from dw.fact_news, by stratum: tier 0 (disclosure lists) 50, tier 1
+  (ticker in title) 75, tier 2 other than "MB" 100, tier 2 through "MB" alone 75 (a title that also has
+  "MBBank" does not rest on "MB" and counts as tier 2 other). Tier 0 is sampled too:
+  a bank's list can carry another bank's item.
+- Fixed sample: pairs ranked by SHA-256 of a salt + url + ticker (natural keys), not NEWID(), so a
+  re-run or a dw rebuild draws the same pairs. `sql/04_quality/520_precision_sample.sql`.
+- The sample is written once to `docs/precision_sample.csv` and labelled there; that file is committed
+  (manual work, cannot be redone the same way).
+- The file has the title, matched term and stratum, not banks_mentioned or the sector flag, so the
+  labels are made from the title alone.
+- Labels:
+  - is_correct = 1 when the matched alias really means the bank it was tied to. 0 for a subsidiary,
+    securities firm, insurer or other unit, another bank with a similar name, or the alias used in
+    another sense.
+  - is_main_subject = 1 when the bank is the subject of the title, not one name in a list, a
+    comparison table, an interbank item or a roll-call of banks. A pair can be correct and not the
+    main subject (a sector item that names VCB). is_main_subject is 0 when is_correct is 0.
+- Two measures, reported side by side and never merged:
+  - match precision = share of pairs with is_correct = 1
+  - usable pair precision = share of pairs with is_correct = 1 and is_main_subject = 1
+  Per stratum, with a 95% Wilson interval; overall figures weight each stratum by its size when
+  sampled (the "MB" stratum is oversampled).
+- The automatic sector flag (3+ banks named) is compared with is_main_subject afterwards, to see how
+  often the flag and the human label disagree.
+
