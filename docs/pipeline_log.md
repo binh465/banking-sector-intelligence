@@ -462,4 +462,12 @@ the next session; "MB" moves to tier 2 with two guards; same-session cutoff 14:4
 - `sql/01_ddl/070_raw_precision_label.sql`, `sql/04_quality/520_precision_sample.sql`
   (view stg.v_precision_sample), `ingest/export_precision_sample.py`,
   `ingest/load_precision_labels.py`.
+- Sample (query 1): t0_disclosure 50 of 2,274; t1_ticker 75 of 792; t2_mb 75 of 410; t2_other 100
+  of 3,403. t2_mb + t2_other = 3,813 = tier 2 pairs; 47 pairs with "MB" as matched term also match
+  another MBB term and sit in t2_other.
+- Fingerprint (query 2): 300 pairs, CHECKSUM_AGG -220953767.
+- One run of the whole 520 file took 4 min 20 s. Re-run step by step (`521_precision_sample_timing.sql`,
+  results into #temp, session waits before/after): each statement 3-346 ms; the CREATE OR ALTER VIEW
+  batch alone under 1 s; no open transaction. The slow run was not seen again and its cause was not
+  observed. If it comes back: Part B of 521 in a second tab while it runs.
 
