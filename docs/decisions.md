@@ -250,15 +250,18 @@ queries 7 and 8 (results in `pipeline_log.md`, 2.4).
   | case | is_correct | is_main_subject |
   |---|---|---|
   | A. Bank only takes part in another party's story ("Company X borrows from VCB") | 1 | 0 |
-  | B. Bank carries out the action ("VCB lends to company X") | 1 | 1 |
-  | C1. Two banks as equal subjects | 1 | 1 each |
+  | B. Bank carries out the action ("VCB lends to company X"), including promotion of its own products or offers | 1 | 1 |
+  | C1. Banks named one by one doing the same action, closed list (no "..."), e.g. "Agribank, ACB, Kienlongbank warn customers" | 1 | 1 each |
   | C2. One main bank, the other only context | 1 | 1 / 0 |
   | C3. Main subject cannot be told from the title | 1 | 0, with a note |
-  | D. List or ranking of banks with no main bank (a ranking led by a named bank is C2) | 1 | 0 |
+  | D. Open list ("..."), ranking, or figures compared across banks ("VPBank 35%, HDBank 30%, MB 20%"), with no main bank (a ranking led by a named bank is C2) | 1 | 0 |
   | E. Item about the bank's own stock | 1 | 1 |
   | F. Name means a subsidiary or other unit, another bank with a similar name, or another sense | 0 | 0 |
   | G. Former name or former brand of the same bank | 1 | according to the title, applying rules A-H |
   | H. Bank is the direct target of an action (fined, inspected, rated) | 1 | 1 |
 
   Cases outside the table get a note; notes are read after labelling and the table extended if needed.
+- C1 is decided by what the title says the banks do, not by how many banks it names. A rule
+  "3+ banks -> 0" would copy the automatic sector flag, and the flag-vs-label comparison would then
+  measure nothing (2026-10-05).
 
