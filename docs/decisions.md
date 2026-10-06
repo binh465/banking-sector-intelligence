@@ -261,6 +261,10 @@ queries 7 and 8 (results in `pipeline_log.md`, 2.4).
   | H. Bank is the direct target of an action (fined, inspected, rated) | 1 | 1 |
 
   Cases outside the table get a note; notes are read after labelling and the table extended if needed.
+- Who labelled (2026-10-06): Binh set every is_correct / is_main_subject value from the title. Claude
+  reviewed each batch of about 50 rows against the case table after Binh had labelled it, listed the
+  rows that broke a rule, and wrote the case notes; Binh decided the final label of each listed row.
+  No label was proposed before Binh had labelled the row.
 - C1 is decided by what the title says the banks do, not by how many banks it names. A rule
   "3+ banks -> 0" would copy the automatic sector flag, and the flag-vs-label comparison would then
   measure nothing (2026-10-05).

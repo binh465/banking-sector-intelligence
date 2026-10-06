@@ -476,4 +476,52 @@ the next session; "MB" moves to tier 2 with two guards; same-session cutoff 14:4
   publish_time_local changed (date format), url / ticker / title unchanged.
 - Round trip: `load_precision_labels.py` -> raw.raw_precision_label 300 rows (separator ','); 520
   query 3: 0 rows both ways.
+- Labelling (2026-10-05 to 2026-10-06): 300 rows in seven batches; each batch reviewed against the case
+  table, the rows that broke a rule fixed. Rows off the rules per batch: 13 of 20, 7 of 35 (rows
+  21-55), 11 of 46, 9 of 50, 10 of 51, 10 of 51, 1 of 47.
+- Final file: 300 rows labelled, all with a case note (B 118, D 80, A 30, C2 18, E 18, H 14, C1 14,
+  C3 6, F 2); note/label cross-check: 0 conflicts. Labels committed in d28ca8a; notes for the 34 rows
+  of the first batches added after.
+- Staging: `sql/01_ddl/140_stg_precision_label.sql`, `sql/02_load/130_load_stg_precision_label.sql`
+  (THROW 50100-50105 on missing labels, is_correct 0 with main subject 1, duplicate pairs, mixed
+  stratum sizes, unknown case codes, codes that contradict the labels).
+
+### 5.5 Precision results
+Run: `sql/04_quality/530_precision_report.sql` on stg.stg_precision_label (300 pairs). These figures
+are for the matching rules as they stood when the sample was drawn (before any fix below).
+
+Per stratum (95% Wilson interval):
+
+| stratum | n | stratum size | match | match 95% | usable | usable 95% |
+|---|---|---|---|---|---|---|
+| t0_disclosure | 50 | 2,274 | 50/50 = 1.000 | 0.929 - 1.000 | 50/50 = 1.000 | 0.929 - 1.000 |
+| t1_ticker | 75 | 792 | 75/75 = 1.000 | 0.951 - 1.000 | 49/75 = 0.653 | 0.541 - 0.751 |
+| t2_mb | 75 | 410 | 75/75 = 1.000 | 0.951 - 1.000 | 29/75 = 0.387 | 0.285 - 0.500 |
+| t2_other | 100 | 3,403 | 98/100 = 0.980 | 0.930 - 0.995 | 46/100 = 0.460 | 0.366 - 0.557 |
+
+Weighted by stratum size:
+
+| scope | labelled | pairs | match | usable |
+|---|---|---|---|---|
+| all | 300 | 6,879 | 0.990 | 0.656 |
+| articles (t1, t2) | 250 | 4,605 | 0.985 | 0.487 |
+
+- The two wrong matches are the same case: "Sacombank" in silver price titles (Sacombank-SBJ, rows 19
+  and 132).
+- A stratum with 100% match is reported with its lower bound (at least 0.93-0.95 at 95%), not as
+  "100% correct".
+- Disclosures (t0) do not go through the title rules; the matching figure for the title rules is the
+  articles row.
+
+Sector flag (is_sector_news) against the human label, correct matches only (298 pairs, sample
+counts, not weighted):
+
+| | not main subject | main subject |
+|---|---|---|
+| flag 0 (kept) | 41 | 160 |
+| flag 1 (dropped) | 83 | 14 |
+
+- The strata are sampled at different rates (all 50 disclosures sit in flag 0 / main subject), so
+  these counts describe the sample, not the population.
+- 530 query 3b: every labelled pair still has a fact_news row.
 
