@@ -269,3 +269,17 @@ queries 7 and 8 (results in `pipeline_log.md`, 2.4).
   "3+ banks -> 0" would copy the automatic sector flag, and the flag-vs-label comparison would then
   measure nothing (2026-10-05).
 
+## 2026-10-07 - Conditional exclusion: "Sacombank" in silver price titles
+- The precision sample had two wrong matches, both "Sacombank" in silver price lists ("Giá bạc ... tại
+  Ancarat, DOJI, Phú Quý, Sacombank, ..."): the gold and silver trader Sacombank-SBJ, written without
+  "-SBJ", which the existing exclusion does not catch.
+- Measured on all titles before the fix: 32 STB titles with a gold/silver word. 30 are silver price
+  lists, all containing "giá bạc". The other 2 name the bank itself (a results round-up with PNJ; a
+  borrower owing Sacombank in a gold-loan story) and contain no "giá bạc".
+- Rule: an exclusion may carry when_title_contains; it is then cut only from titles containing that
+  phrase. Added: {text: Sacombank, when_title_contains: giá bạc}. Not "giá vàng" or trader names:
+  those would also drop the 2 bank titles, and Vietcombank, VietinBank, BIDV and Agribank sell gold
+  bars themselves, so gold words alone do not mark a non-bank.
+- The precision figures in pipeline_log 5.5 were measured on the rules before this fix. The sample was
+  not redrawn; the precision of the fixed rules is not measured.
+

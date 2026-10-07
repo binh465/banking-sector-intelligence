@@ -107,3 +107,25 @@ WHERE a.item_type = 'article'
   AND (N' ' + TRANSLATE(a.title, N',.:;!?()"“”‘’[]…|/«»*+=#@', N'                         ') + N' ')
       COLLATE Latin1_General_BIN2 LIKE (N'%[^A-Za-z][0-9] ' + s.term + N' %') COLLATE Latin1_General_BIN2
 ORDER BY s.term, a.publish_time_local;
+
+-- 10. Conditional exclusion "Sacombank" when the title contains "giá bạc" (decisions.md, 2026-10-07).
+--     a) titles with both phrases, and whether STB is still matched (stb_matched should be 0 on every row)
+SELECT a.article_key, a.title,
+       CASE WHEN EXISTS (SELECT 1 FROM stg.stg_article_bank_match m
+                         WHERE m.article_key = a.article_key AND m.bank_id = N'STB') THEN 1 ELSE 0 END AS stb_matched
+FROM dw.dim_article a
+WHERE a.item_type = 'article'
+  AND a.title LIKE N'%Sacombank%'
+  AND a.title LIKE N'%giá bạc%'
+ORDER BY a.publish_time_local;
+
+--     b) STB titles with other gold/silver words, kept on purpose (news about the bank)
+SELECT a.article_key, a.title
+FROM stg.stg_article_bank_match m
+JOIN dw.dim_article a ON a.article_key = m.article_key
+WHERE m.bank_id = N'STB'
+  AND (   a.title LIKE N'%giá vàng%'  OR a.title LIKE N'%giá bạc%'
+       OR a.title LIKE N'%vàng miếng%' OR a.title LIKE N'%bạc miếng%' OR a.title LIKE N'%bạc thỏi%'
+       OR a.title LIKE N'%SJC%' OR a.title LIKE N'%DOJI%' OR a.title LIKE N'%PNJ%'
+       OR a.title LIKE N'%Phú Quý%' OR a.title LIKE N'%Bảo Tín%')
+ORDER BY a.publish_time_local;

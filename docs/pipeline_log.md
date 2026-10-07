@@ -525,3 +525,25 @@ counts, not weighted):
   these counts describe the sample, not the population.
 - 530 query 3b: every labelled pair still has a fact_news row.
 
+### 5.6 Conditional exclusion for "Sacombank" in silver price titles (2026-10-07)
+Decision in `decisions.md` (2026-10-07). Measured before the fix (510 query 10b shape): 32 STB titles
+with a gold/silver word, 30 of them silver price lists containing "giá bạc".
+- Changed: `config/aliases.yaml` (exclusion with when_title_contains), `ingest/load_aliases.py`,
+  `060_raw_alias.sql` and `120_stg_alias.sql` (column when_title_contains, ALTER for existing tables),
+  `120_load_stg_alias.sql` (50073 limited to unconditional exclusions, new 50074), `500_match_articles.sql`.
+- Counts predicted before the run and found after it:
+
+  | step | before | after |
+  |---|---|---|
+  | raw.raw_alias rows | 107 | 108 |
+  | stg_alias_exclusion | 29 | 30 |
+  | in-scope tier 2 pairs / articles | 3,813 / 2,721 | 3,783 / 2,691 |
+  | in-scope tier 1, outside banks | unchanged | unchanged |
+  | fact_news rows | 6,879 | 6,849 |
+  | STB rows in fact_news (not sector) | 639 (487) | 609 (457) |
+  | labelled pairs not in current sample (130) | 0 | 2 (t2_other, rows 19 and 132) |
+
+- 340 checks: queries 1-4 and 7-9 no rows; query 6 0 and 0. 510 query 10a: every title with
+  "Sacombank" and "giá bạc" has stb_matched = 0; 10b: 2 titles kept (36548, 182130).
+- 530 figures unchanged (labels unchanged); they remain the precision of the rules before this fix.
+

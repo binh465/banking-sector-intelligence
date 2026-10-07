@@ -21,7 +21,7 @@ SET XACT_ABORT ON;
 
 -- Terms are put into LIKE patterns: a %, _ or [ inside a term would act as a wildcard.
 IF EXISTS (SELECT 1 FROM stg.stg_alias WHERE term LIKE N'%[%_[]%')
-   OR EXISTS (SELECT 1 FROM stg.stg_alias_exclusion WHERE term LIKE N'%[%_[]%')
+   OR EXISTS (SELECT 1 FROM stg.stg_alias_exclusion WHERE term LIKE N'%[%_[]%' OR when_title_contains LIKE N'%[%_[]%')
    OR EXISTS (SELECT 1 FROM stg.stg_alias_context WHERE term LIKE N'%[%_[]%')
     THROW 50080, N'An alias, exclusion or context term contains %, _ or [', 1;
 
@@ -41,10 +41,12 @@ WHERE item_type = 'article';
 
 -- 2. Cut exclusions out. A loop over the exclusion rows, each step one set-based UPDATE.
 --    REPLACE doesn't overlap matches (" MBS MBS " keeps the second), so each phrase repeats until gone.
-DECLARE @term NVARCHAR(200), @cs BIT, @n INT;
-DECLARE ex CURSOR LOCAL FAST_FORWARD FOR SELECT term, case_sensitive FROM stg.stg_alias_exclusion;
+--    An exclusion with when_title_contains is cut only from titles that contain that phrase
+--    (database collation: case-insensitive, accent-sensitive).
+DECLARE @term NVARCHAR(200), @cs BIT, @when NVARCHAR(200), @n INT;
+DECLARE ex CURSOR LOCAL FAST_FORWARD FOR SELECT term, case_sensitive, when_title_contains FROM stg.stg_alias_exclusion;
 OPEN ex;
-FETCH NEXT FROM ex INTO @term, @cs;
+FETCH NEXT FROM ex INTO @term, @cs, @when;
 WHILE @@FETCH_STATUS = 0
 BEGIN
     SET @n = 1;
@@ -52,13 +54,15 @@ BEGIN
     BEGIN
         IF @cs = 1
             UPDATE #t SET txt = REPLACE(txt COLLATE Latin1_General_BIN2, N' ' + @term + N' ', N'  ')
-            WHERE txt COLLATE Latin1_General_BIN2 LIKE N'% ' + @term + N' %';
+            WHERE txt COLLATE Latin1_General_BIN2 LIKE N'% ' + @term + N' %'
+              AND (@when IS NULL OR txt LIKE N'%' + @when + N'%');
         ELSE
             UPDATE #t SET txt = REPLACE(txt, N' ' + @term + N' ', N'  ')
-            WHERE txt LIKE N'% ' + @term + N' %';
+            WHERE txt LIKE N'% ' + @term + N' %'
+              AND (@when IS NULL OR txt LIKE N'%' + @when + N'%');
         SET @n = @@ROWCOUNT;
     END;
-    FETCH NEXT FROM ex INTO @term, @cs;
+    FETCH NEXT FROM ex INTO @term, @cs, @when;
 END;
 CLOSE ex;
 DEALLOCATE ex;

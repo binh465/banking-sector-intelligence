@@ -2,7 +2,8 @@
 --   stg_bank             one row per bank: the 10 in scope (bank_id = ticker) and the others
 --   stg_alias            one row per term per bank; tier 1 = ticker, 2 = strong, 3 = weak
 --   stg_alias_context    context words for tier 3
---   stg_alias_exclusion  phrases cut out of titles before matching
+--   stg_alias_exclusion  phrases cut out of titles before matching; with when_title_contains set,
+--                        only from titles containing that phrase (one condition per term)
 -- A term may belong to one bank only (unique on term, case-insensitive under the database collation).
 -- Loaded by sql/02_load/120_load_stg_alias.sql. Creates the tables only if they don't exist.
 USE BankingSectorIntelligence;
@@ -39,6 +40,11 @@ IF OBJECT_ID(N'stg.stg_alias_exclusion', N'U') IS NULL
 CREATE TABLE stg.stg_alias_exclusion (
     term            NVARCHAR(200)  NOT NULL,
     case_sensitive  BIT            NOT NULL,
+    when_title_contains NVARCHAR(200) NULL,
     CONSTRAINT pk_stg_alias_exclusion PRIMARY KEY (term)
 );
+
+-- Column added 2026-10-07 (conditional exclusions); added here for a table created before that.
+IF COL_LENGTH(N'stg.stg_alias_exclusion', N'when_title_contains') IS NULL
+    ALTER TABLE stg.stg_alias_exclusion ADD when_title_contains NVARCHAR(200) NULL;
 GO

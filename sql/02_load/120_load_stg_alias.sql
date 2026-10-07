@@ -22,10 +22,17 @@ IF EXISTS (SELECT [bank_id] FROM raw.raw_alias WHERE [kind] IN (N'strong', N'wea
            GROUP BY [bank_id] HAVING COUNT(DISTINCT [in_scope]) > 1)
     THROW 50072, N'A bank in aliases.yaml has more than one in_scope value', 1;
 
--- A phrase can't be both a bank alias and an exclusion.
+-- A phrase can't be both a bank alias and an unconditional exclusion (the alias would never match).
+-- A conditional exclusion (when_title_contains) of an alias is allowed: that is its purpose.
 IF EXISTS (SELECT 1 FROM raw.raw_alias a JOIN raw.raw_alias x ON x.[term] = a.[term]
-           WHERE a.[kind] IN (N'strong', N'weak') AND x.[kind] = N'exclusion')
+           WHERE a.[kind] IN (N'strong', N'weak') AND x.[kind] = N'exclusion'
+             AND NULLIF(LTRIM(RTRIM(x.[when_title_contains])), N'') IS NULL)
     THROW 50073, N'A term is both an alias and an exclusion', 1;
+
+-- when_title_contains belongs to exclusions only.
+IF EXISTS (SELECT 1 FROM raw.raw_alias
+           WHERE [kind] <> N'exclusion' AND NULLIF(LTRIM(RTRIM([when_title_contains])), N'') IS NOT NULL)
+    THROW 50074, N'when_title_contains is set on a row that is not an exclusion', 1;
 
 BEGIN TRANSACTION;
 
@@ -57,8 +64,9 @@ WHERE [kind] IN (N'strong', N'weak');
 INSERT INTO stg.stg_alias_context (term)
 SELECT LTRIM(RTRIM([term])) FROM raw.raw_alias WHERE [kind] = N'context';
 
-INSERT INTO stg.stg_alias_exclusion (term, case_sensitive)
-SELECT LTRIM(RTRIM([term])), CAST([case_sensitive] AS bit) FROM raw.raw_alias WHERE [kind] = N'exclusion';
+INSERT INTO stg.stg_alias_exclusion (term, case_sensitive, when_title_contains)
+SELECT LTRIM(RTRIM([term])), CAST([case_sensitive] AS bit), NULLIF(LTRIM(RTRIM([when_title_contains])), N'')
+FROM raw.raw_alias WHERE [kind] = N'exclusion';
 
 COMMIT TRANSACTION;
 

@@ -21,6 +21,13 @@ def term(entry):
     return unicodedata.normalize("NFC", str(entry).strip()), False
 
 
+def condition(entry):
+    """Exclusions only: {text: ..., when_title_contains: ...} is cut only from titles with that phrase."""
+    if isinstance(entry, dict) and entry.get("when_title_contains"):
+        return unicodedata.normalize("NFC", str(entry["when_title_contains"]).strip())
+    return None
+
+
 def flag(b):
     return "1" if b else "0"
 
@@ -32,10 +39,10 @@ def main():
     rows = []
     for e in cfg.get("context_words", []):
         t, cs = term(e)
-        rows.append(["context", None, None, None, t, flag(cs)])
+        rows.append(["context", None, None, None, t, flag(cs), None])
     for e in cfg.get("exclusions", []):
         t, cs = term(e)
-        rows.append(["exclusion", None, None, None, t, flag(cs)])
+        rows.append(["exclusion", None, None, None, t, flag(cs), condition(e)])
     for b in cfg["banks"]:
         ticker = b.get("ticker")
         bank_id = ticker or b.get("id")
@@ -44,9 +51,9 @@ def main():
         for kind in ("strong", "weak"):
             for e in b.get(kind, []) or []:
                 t, cs = term(e)
-                rows.append([kind, bank_id, ticker, flag(b.get("in_scope", False)), t, flag(cs)])
+                rows.append([kind, bank_id, ticker, flag(b.get("in_scope", False)), t, flag(cs), None])
 
-    cols = ["kind", "bank_id", "ticker", "in_scope", "term", "case_sensitive"]
+    cols = ["kind", "bank_id", "ticker", "in_scope", "term", "case_sensitive", "when_title_contains"]
     col_list = ", ".join(f"[{c}]" for c in cols + ["source_file"])
     placeholders = ", ".join("?" * (len(cols) + 1))
     conn = get_connection()

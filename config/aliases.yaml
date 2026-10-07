@@ -9,6 +9,7 @@
 # Matching is case-insensitive unless an entry says case_sensitive: true.
 # exclusions are cut out of the title before any matching and before counting banks, so a
 # subsidiary or the regulator never counts as the bank whose name it contains.
+# An exclusion with when_title_contains is cut only from titles that contain that phrase.
 # Banks with in_scope: false never get a fact_news row; they only count in banks_mentioned.
 
 context_words:
@@ -47,6 +48,9 @@ exclusions:
   - Sacombank-SBR
   - Sacombank-SBJ
   - Sacombank-SBL
+  # Sacombank-SBJ written as plain "Sacombank" in silver price lists ("Giá bạc ... tại Ancarat, DOJI,
+  # Phú Quý, Sacombank, ..."). Cut only in titles that contain the phrase, so news about the bank stays.
+  - {text: Sacombank, when_title_contains: giá bạc}
   # not a bank at all
   - SoftBank
 
