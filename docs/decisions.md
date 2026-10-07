@@ -99,6 +99,12 @@ queries 7 and 8 (results in `pipeline_log.md`, 2.4).
 - No NFC normalisation. Vietnamese_100_CI_AS compares precomposed and decomposed text as equal in
   = and LIKE (tested on one word; Phase 5 re-tests the rows that are not NFC). A binary collation,
   LEN/CHARINDEX positions, or matching in Python would still see the difference.
+  Re-tested 2026-10-07 (`550_non_nfc_titles.sql`): every case-sensitive alias and exclusion (the
+  terms compared under BIN2 in 500) is plain ASCII, so the binary path cannot miss a decomposed
+  title; the `'% term %'` pattern of 500 matches a decomposed "Ngân hàng Quân đội" under the database
+  collation and not under BIN2; of the 39 non-NFC article titles, the 3 that name a bank (Vietbank,
+  Agribank, BVBank) are matched and the other 36 name no bank. The decision stands. A future
+  case-sensitive term with a Vietnamese letter would need NFC in staging first.
 - stg_ticker_news: one row per ticker per URL; URL normalised to https://cafef.vn + path without
   the query string; kind from the /du-lieu/ path; 00:00 means date only for disclosures only.
 - URL as VARCHAR(400) primary key: all ASCII, longest 254. A clustered key holds at most 900 bytes,
@@ -282,4 +288,19 @@ queries 7 and 8 (results in `pipeline_log.md`, 2.4).
   bars themselves, so gold words alone do not mark a non-bank.
 - The precision figures in pipeline_log 5.5 were measured on the rules before this fix. The sample was
   not redrawn; the precision of the fixed rules is not measured.
+
+## 2026-10-07 - Matching reads the sitemap title, not og:title
+- Measured (`560_title_vs_og_title.sql`): of 246,056 articles, 10,833 (4.4%) have an og:title, and it
+  differs from the sitemap title on 576. The og:title is a rewritten headline, not the same text with
+  a suffix.
+- On those 576, alias terms found (a screen without exclusions or guards): in-scope banks 122 pairs in
+  both, 20 in the sitemap title only, 14 in og:title only; outside banks 29, 5, 7. Switching would
+  lose more in-scope pairs than it gains.
+- Pages were fetched only for sitemap titles that passed the Phase 1 prefilter (bank names, tickers,
+  "ngân hàng"), so og:title exists only where the sitemap title already looked bank-related. Reading
+  og:title as well (either text) would read more text for that group alone, and the precision sample
+  was labelled on the sitemap title.
+- So every article is matched on its sitemap title. The 14 in-scope pairs seen only in og:title
+  (mostly headlines that hide the bank in the sitemap version, e.g. "một ngân hàng" vs "VPBank") go
+  to Limitations.
 

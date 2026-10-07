@@ -580,3 +580,25 @@ by the article body, the rules read the title only, and a list can carry an item
 - So the title rules miss no named bank; the loss is titles that do not name the bank. Reaching those
   needs the article body, which is out of scope.
 
+### 5.8 Titles not in NFC
+Run: `sql/04_quality/550_non_nfc_titles.sql`.
+- Query 1: no case-sensitive alias or exclusion with a non-ASCII character.
+- Query 2: decomposed "Ngân hàng Quân đội" (LEN 21, NFC 18) matches the 500 pattern under the
+  database collation (1), not under BIN2 (0).
+- Query 3: 39 non-NFC article titles. 3 name a bank, all matched (Vietbank, Agribank, BVBank, all
+  outside the 10); 36 name no bank (real estate, jewellery, airline and similar). No miss.
+
+### 5.9 Sitemap title vs og:title
+Run: `sql/04_quality/560_title_vs_og_title.sql`. Decision in `decisions.md` (2026-10-07).
+- Articles 246,056; with og:title 10,833; og:title differs from the sitemap title 576.
+- Alias terms on the 576 (screen, no exclusions or guards):
+
+  | banks | in both | sitemap title only | og:title only |
+  |---|---|---|---|
+  | in scope | 122 | 20 | 14 |
+  | outside the 10 | 29 | 5 | 7 |
+
+- The 14 in-scope og-only pairs were read: mostly headlines that name the bank in og:title and hide
+  it in the sitemap title ("một ngân hàng", "một cổ phiếu ngân hàng").
+- Kept: matching reads the sitemap title for every article.
+
