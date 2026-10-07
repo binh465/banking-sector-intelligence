@@ -547,3 +547,36 @@ with a gold/silver word, 30 of them silver price lists containing "giá bạc".
   "Sacombank" and "giá bạc" has stb_matched = 0; 10b: 2 titles kept (36548, 182130).
 - 530 figures unchanged (labels unchanged); they remain the precision of the rules before this fix.
 
+### 5.7 Agreement with CafeF's per-ticker article lists
+Run: `sql/04_quality/540_ticker_list_agreement.sql` (after the 5.6 fix). Not a true recall: CafeF tags
+by the article body, the rules read the title only, and a list can carry an item about another bank.
+
+| ticker | list | not in sitemap | matched | other banks only | no bank |
+|---|---|---|---|---|---|
+| ACB | 36 | 4 | 21 | 4 | 7 |
+| CTG | 29 | 6 | 10 | 2 | 11 |
+| HDB | 58 | 7 | 30 | 3 | 18 |
+| MBB | 29 | 4 | 11 | 3 | 11 |
+| SHB | 48 | 9 | 23 | 0 | 16 |
+| STB | 43 | 7 | 25 | 2 | 9 |
+| TCB | 107 | 17 | 58 | 3 | 29 |
+| TPB | 25 | 5 | 12 | 1 | 7 |
+| VCB | 40 | 4 | 17 | 1 | 18 |
+| VPB | 44 | 9 | 20 | 1 | 14 |
+| all | 459 | 72 | 227 | 20 | 140 |
+
+- No list article outside the window. 72 (16%) are not in the crawled sitemaps: a source gap, kept
+  out of the rate.
+- Agreement on the 387 articles the rules can read: 227 / 387 = 0.587.
+- The 160 list pairs not matched to their own ticker (83 distinct articles; one round-up sits on up
+  to 9 lists) were read one by one (titles read by Claude, listed for Binh):
+  - title names the bank under a term missing from the alias table: 0. No alias added.
+  - excluded on purpose: 1 (SHBFinance, a subsidiary).
+  - single unnamed bank as the subject ("Một ngân hàng ...", "Ngân hàng đắt giá nhất Việt Nam ...",
+    "Một cổ phiếu ngân hàng ..."): 18 pairs, 18 articles. These are bank-specific news the title rules
+    cannot see.
+  - the rest (141 pairs, of which 20 name other banks only): round-ups of many companies or banks,
+    stories about people (owners, chairmen by nickname), generic titles. Most would be sector items.
+- So the title rules miss no named bank; the loss is titles that do not name the bank. Reaching those
+  needs the article body, which is out of scope.
+
