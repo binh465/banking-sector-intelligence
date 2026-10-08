@@ -602,3 +602,37 @@ Run: `sql/04_quality/560_title_vs_og_title.sql`. Decision in `decisions.md` (202
   it in the sitemap title ("một ngân hàng", "một cổ phiếu ngân hàng").
 - Kept: matching reads the sitemap title for every article.
 
+---
+
+## Phase 6 - Analysis views (from 2026-10-08)
+
+Views in schema `mart`, files `sql/03_transform/600-...`. Every window function partitions by
+`ticker` (durable key) and orders by `session_seq`.
+
+### 6.1-6.3 Return and sector index views
+- `v_price_session`, `v_return_daily`, `v_sector_return`, `v_sector_index` (600-630).
+- Return checks pass, including agreement with the five moves beyond 7% listed in Phase 2.
+- 497 sessions; `sector_ret` is NULL only at session 1; every later session has all 10 returns.
+- `sector_index` = 100 at session 1; index(s) / index(s-1) - 1 reproduces `sector_ret` to 3.3E-16.
+- Session 2: `AVG(ret)` from `v_return_daily` equals `sector_ret`.
+- Last session: average of ticker base-100 indexes 140.73, sector index 141.34.
+  The sector index is a daily-rebalanced equal-weight series; the average of indexes is
+  equal-weight buy-and-hold. The gap is the effect of rebalancing over this window.
+
+### 6.4 Ticker index
+- `v_ticker_index` (640): base 100 per ticker, compounded from `ret` the same way as the sector index.
+- 497 rows per ticker, 100 at session 1 for every ticker.
+- Against 100 * close / first close on every row: largest relative difference 3.3E-15, so no ticker
+  has a missing session.
+- Average of the 10 ticker indexes at the last session: 140.729265897882, same as 6.1-6.3.
+
+### 6.5 Relative strength and excess return
+- `v_relative_strength` (650): `excess_ret` = ret - sector_ret (input to the z-score);
+  `rs` = 100 * ticker_index / sector_index (charts only, it trends).
+- 497 rows per ticker; one NULL `excess_ret` per ticker (session 1); `rs` = 100 at session 1.
+- Sum of the 10 excess returns per session: largest absolute value 5.6E-17.
+- Last session, `rs` from highest to lowest: STB 165.27, VPB 109.43, HDB 108.19, MBB 104.76,
+  TCB 102.33, SHB 100.82, CTG 86.75, ACB 80.88, TPB 69.89, VCB 67.36. Mean 99.57, below 100 by the
+  same ratio as 140.73 / 141.34 (sector index is rebalanced daily, not an average of indexes).
+- This ranks the whole window only. When a ticker started to diverge is the z-score step (6.7).
+
