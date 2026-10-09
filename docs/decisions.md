@@ -304,3 +304,24 @@ queries 7 and 8 (results in `pipeline_log.md`, 2.4).
   (mostly headlines that hide the bank in the sitemap version, e.g. "một ngân hàng" vs "VPBank") go
   to Limitations.
 
+## 2026-10-09 - Divergence alert threshold: |z| >= 3, one threshold for all tickers
+- z is the z-score of excess_ret against the 60 sessions before it (`v_excess_zscore`). Chosen after
+  looking at the distribution of z and before matching any alert to news.
+- Distribution (436 sessions with z per ticker):
+
+  | | normal distribution, per ticker | observed, per ticker | all 10 tickers |
+  |---|---|---|---|
+  | \|z\| >= 2 | about 20 (4.55%) | 26-36 | 316 |
+  | \|z\| >= 3 | about 1.2 (0.27%) | 7-13 | 100 |
+
+- |z| >= 2 flags about 1 session in 14 per ticker: too common to call unusual, and too many to read
+  with their news. |z| >= 3 flags 100 sessions (2.3%), fewer once consecutive sessions are merged into
+  episodes (Phase 7).
+- Two-sided: running ahead of the sector and falling behind both count as divergence.
+- One threshold for every ticker: z is already scaled by each ticker's own volatility, and a
+  per-ticker threshold would be tuned on the results.
+- Returns have fat tails (|z| >= 3 is 6 to 11 times the normal rate, max |z| 8.15), so z is a scale of
+  distance from the last 60 sessions, not a probability.
+- The view returns z only; the threshold is applied when episodes are built, so charts can show the
+  whole series. The threshold is not changed after seeing which alerts have news.
+

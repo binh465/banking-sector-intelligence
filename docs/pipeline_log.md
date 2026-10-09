@@ -636,3 +636,26 @@ Views in schema `mart`, files `sql/03_transform/600-...`. Every window function 
   same ratio as 140.73 / 141.34 (sector index is rebalanced daily, not an average of indexes).
 - This ranks the whole window only. When a ticker started to diverge is the z-score step (6.7).
 
+### 6.6 Rolling correlation, 60 sessions
+- `v_rolling_corr` (660): correlation of ticker return with sector return over the current session
+  and the 59 before it, from six running sums; returned only when the window holds 60 pairs.
+- 60 NULL `corr_60` per ticker, first value at session 61; all values inside [-1, 1].
+- Range per ticker (min / max): ACB 0.59 / 0.96, CTG 0.55 / 0.95, HDB 0.45 / 0.92,
+  MBB 0.64 / 0.94, SHB 0.31 / 0.88, STB 0.31 / 0.90, TCB 0.57 / 0.91, TPB 0.55 / 0.91,
+  VCB 0.34 / 0.93, VPB 0.64 / 0.92.
+- Recomputed by definition (mean-centred products over STDEVP) for ACB at session 200:
+  0.631131391695342 in both.
+- The sector includes the ticker itself (1/10 weight), which pushes the correlation up. For
+  Limitations.
+
+### 6.7 Z-score on excess return
+- `v_excess_zscore` (670): window ROWS BETWEEN 60 PRECEDING AND 1 PRECEDING, partitioned by ticker;
+  z only when the window holds 60 excess returns and the current one exists. Sample sd (STDEV).
+- 61 NULL z per ticker, first z at session 62 (the window of session 61 still holds session 1, which
+  has no return).
+- Recomputed by definition for STB at session 62 (-0.185107235278076) and session 300
+  (-0.217354933808168): equal in both.
+- Per ticker 436 sessions with z; |z| >= 2: 26-36, |z| >= 3: 7-13 (MBB 13, VCB 13, SHB 12, ACB 11,
+  VPB 10, TCB 9, CTG 9, HDB 8, TPB 8, STB 7); max |z| 4.31 (ACB) to 8.15 (TPB).
+- Threshold |z| >= 3 chosen, see `decisions.md` (2026-10-09).
+
