@@ -719,3 +719,31 @@ Views in schema `mart`, files `sql/03_transform/600-...`. Every window function 
   0.74 under a normal distribution. Large moves inside the window widen the sd and pull z below 3;
   the quartiles are not moved by them.
 
+- Against |z| >= 3, the 1.5 IQR fence (4,360 sessions with both):
+
+  | | out_1_5 = 0 | out_1_5 = 1 |
+  |---|---|---|
+  | \|z\| < 3 | 4,072 | 188 |
+  | \|z\| >= 3 | 0 | 100 |
+
+  Every |z| >= 3 session is outside the 1.5 IQR fence; the fence adds 188 more. In this data
+  |z| >= 3 sits between the two fences: looser than 3 IQR (56 of its 100 sessions), stricter
+  than 1.5 IQR (all 100).
+
+### Phase 6 summary
+- Views in `sql/03_transform/600-680`, schema `mart`. Every window function partitions by `ticker`
+  and orders by `session_seq`.
+- Structural checks, all derived from the window definitions and all met for every ticker:
+  497 rows; 1 NULL return and 1 NULL excess return (session 1); 60 NULL `corr_60` (first at
+  session 61); 61 NULL z and 61 NULL IQR flags (first at session 62).
+- Cross-checks by a second route: sector index from returns vs index ratio (3.3E-16); ticker index
+  vs price ratio on every row (3.3E-15); excess returns sum to 0 per session (5.6E-17); correlation,
+  z and quartiles recomputed by definition at sample points.
+- For Limitations:
+  - the sector includes each ticker at 1/10 weight, which raises the correlation of a ticker with
+    the sector; z is not affected (with equal weights excess_ret = 0.9 x the leave-one-out excess);
+  - z-score masking: large moves inside a 60-session window widen the sd and can pull a later
+    session below |z| = 3 (3 sessions flagged by 3 IQR only, sd / IQR 1.24-1.48);
+  - |z| is a distance from the last 60 sessions, not a probability: returns have fat tails
+    (|z| >= 3 at 6 to 11 times the normal rate).
+
