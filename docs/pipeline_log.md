@@ -681,3 +681,41 @@ Views in schema `mart`, files `sql/03_transform/600-...`. Every window function 
   the ticker count in 620). The ticker predicate does not help the sector branch, which needs all 10
   tickers, and the session range cannot be pushed below the window functions.
 
+### 6.7 Rolling IQR, set-based version
+- `v_excess_iqr` (680) rewritten: each session joined to its 60 earlier sessions (same ticker,
+  session_seq s-60 .. s-1), percentiles per (ticker, session_seq) over those rows, DISTINCT to one row,
+  LEFT JOIN back so sessions without earlier rows are kept.
+- Same result as the OUTER APPLY version (commit fb90105): 4,970 rows compared one by one (FULL JOIN,
+  EXISTS ... EXCEPT, NULL = NULL), none on one side only, none differ.
+- Measured with the same SUM query: CPU 4,375 ms, elapsed 5,776 ms (was 123,402 ms).
+  fact_price_daily scan count 8 (was 14,893); Worktable 4,985 scans, 2,905,004 logical reads.
+- Actual plan:
+  - the self-join runs as Nested Loops over an eager Index Spool built once on the inner side and
+    sought 4,970 times (about 0.3 s);
+  - a hash join inside the inlined view chain produces 2,799,000 rows (estimate 22,692) before being
+    filtered back to 279,900: the sector branch is joined by session before the ticker filter;
+  - Sort of 279,300 rows and a hash both spill to tempdb (962 and 2,040 pages); grant 11.6 MB,
+    3.6 MB used, split by estimated rows;
+  - COUNT and the three percentiles: five Segment / Table Spool / Stream Aggregate chains, 4,951
+    executions each (about 3 s in total).
+  Left for Phase 9.
+- Pair rows: 279,300 = 10 x (1 + ... + 59 for sessions 3-61, plus 436 x 60 for sessions 62-497).
+  4,950 sessions have at least one earlier excess return (sessions 1 and 2 have none).
+- 497 rows per ticker; 61 NULL flags per ticker, first flag at session 62.
+- Q1 and Q3 recomputed by interpolation (positions 15.75 and 45.25 of 60 sorted values) for VCB at
+  session 300: equal to the view.
+- Flags: out_1_5 288, out_3 59 sessions.
+- Against |z| >= 3 (4,360 sessions with both):
+
+  | | out_3 = 0 | out_3 = 1 |
+  |---|---|---|
+  | \|z\| < 3 | 4,257 | 3 |
+  | \|z\| >= 3 | 44 | 56 |
+
+- Under a normal distribution Q3 + 3 IQR is about 4.7 sd and Q3 + 1.5 IQR about 2.7 sd, so out_3 is
+  stricter than |z| >= 3.
+- The 3 sessions flagged by out_3 only: SHB session 118 (2025-03-18, z 2.90), TPB 131 (2025-04-04,
+  z -2.99), TPB 153 (2025-05-12, z 2.60). sd / IQR of their windows: 1.24, 1.28, 1.48, against about
+  0.74 under a normal distribution. Large moves inside the window widen the sd and pull z below 3;
+  the quartiles are not moved by them.
+
