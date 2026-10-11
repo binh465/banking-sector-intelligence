@@ -659,3 +659,25 @@ Views in schema `mart`, files `sql/03_transform/600-...`. Every window function 
   VPB 10, TCB 9, CTG 9, HDB 8, TPB 8, STB 7); max |z| 4.31 (ACB) to 8.15 (TPB).
 - Threshold |z| >= 3 chosen, see `decisions.md` (2026-10-09).
 
+### 6.7 Rolling IQR, first version: OUTER APPLY
+- `v_excess_iqr` (680), first version: for each session, OUTER APPLY with TOP (1) takes the 60 earlier
+  excess returns of the same ticker from `v_relative_strength` and computes Q1, median, Q3 with
+  PERCENTILE_CONT ... OVER (). PERCENTILE_CONT does not accept a ROWS frame, hence the subquery.
+- `SELECT COUNT(*)` on the view: 19 ms, but the plan has no APPLY branch and no window operators.
+  The OUTER APPLY with TOP (1) cannot change the row count, so the optimizer drops it, and the window
+  functions with it, when no column from them is used. Not a measure of the view.
+- Measured with `SELECT SUM(out_1_5), SUM(out_3), SUM(q1), SUM(q3)` (STATISTICS TIME, IO):
+  CPU 116,828 ms, elapsed 123,402 ms.
+
+  | table | scan count | logical reads |
+  |---|---|---|
+  | fact_price_daily | 14,893 | 595,720 |
+  | dim_date | 14,893 | 119,144 |
+  | dim_ticker | 9,932 | 129,006 |
+  | Worktable | 29,828 | 2,433,000 |
+
+- Scan counts are small multiples of the 4,970 outer rows: the inner side recomputes the whole view
+  chain once per outer row (fact_price_daily read three times each: ticker branch, sector branch, and
+  the ticker count in 620). The ticker predicate does not help the sector branch, which needs all 10
+  tickers, and the session range cannot be pushed below the window functions.
+
