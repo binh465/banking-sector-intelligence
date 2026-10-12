@@ -747,3 +747,22 @@ Views in schema `mart`, files `sql/03_transform/600-...`. Every window function 
   - |z| is a distance from the last 60 sessions, not a probability: returns have fat tails
     (|z| >= 3 at 6 to 11 times the normal rate).
 
+---
+
+## Phase 7 - Alerts and news (from 2026-10-12)
+
+### 7.1 Alert episodes
+- `v_alert_episode` (700): alert sessions |z| >= 3 grouped into runs of consecutive sessions of one
+  ticker and one direction (gaps and islands). Rules in `decisions.md` (2026-10-12).
+- Sessions in episodes 100 = alert sessions 100. No two episodes of the same ticker and direction
+  touch (start_seq - previous end_seq <= 1: none). Every episode is a solid run
+  (sessions = end_seq - start_seq + 1 on every row).
+- 96 episodes: 80 with direction +1, 16 with direction -1. All runs are one session long except
+  HDB +1 (3 sessions), SHB +1 (2) and VCB +1 (2), which accounts for 100 - 96 = 4.
+- Per ticker (direction -1 / +1): ACB 3 / 8, CTG 3 / 6, HDB 0 / 6, MBB 1 / 12, SHB 2 / 9,
+  STB 1 / 6, TCB 0 / 9, TPB 2 / 6, VCB 3 / 9, VPB 1 / 9.
+- Up-side alerts outnumber down-side alerts five to one. Recorded as an observation; the cause is not
+  examined here.
+- Adjacent alert sessions of opposite sign: one pair, MBB session 68 (down) and 69 (up). Splitting by
+  direction makes them two episodes instead of one mixed episode; no other episode is affected.
+

@@ -325,3 +325,12 @@ queries 7 and 8 (results in `pipeline_log.md`, 2.4).
 - The view returns z only; the threshold is applied when episodes are built, so charts can show the
   whole series. The threshold is not changed after seeing which alerts have news.
 
+## 2026-10-12 - Alert episodes: adjacent sessions only, split by direction
+- An episode is a run of alert sessions (|z| >= 3) of one ticker whose session_seq values follow each
+  other with no gap. No tolerance for a skipped session: a tolerance would be one more number to pick,
+  and it could be tuned on the results.
+- Runs are split by the sign of z. Running ahead of the sector and falling behind it are opposite
+  events; one episode with both would have no direction, and news matched to it would mix the two.
+- Key of an episode: (ticker, start_seq). Built with gaps and islands: session_seq minus ROW_NUMBER
+  over (ticker, direction) is constant inside a run.
+
