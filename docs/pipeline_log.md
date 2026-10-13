@@ -785,3 +785,24 @@ Views in schema `mart`, files `sql/03_transform/600-...`. Every window function 
 - Not yet interpretable: bank news is frequent, so most 5-session windows may hold an item whatever
   the price does. A base rate for ordinary sessions is needed before reading 95 of 96 (7.3).
 
+### 7.3 News base rate
+- `sql/04_quality/720_news_base_rate.sql`: every (ticker, session) from `v_excess_zscore`, single-bank
+  items per reaction session joined on (ticker, session_seq), 0 where none; 5-session window summed
+  with ROWS BETWEEN 2 PRECEDING AND 2 FOLLOWING; filtered after the window to sessions with a z and a
+  full window. Decision in `decisions.md` (2026-10-13).
+- Sessions: alert 99, ordinary 4,241 (4,340 = 10 x (436 - 2)). One alert session falls in the last two
+  sessions of its ticker and is left out for a cut window.
+
+  | | sessions | window with >= 1 item | items per window | items on the session |
+  |---|---|---|---|---|
+  | alert (\|z\| >= 3) | 99 | 98.99% | 6.70 | 1.44 |
+  | ordinary | 4,241 | 97.71% | 5.29 | 1.06 |
+
+- Having news nearby does not separate alerts from ordinary sessions (99.0% vs 97.7%).
+- Density does: about 27% more items in the window and 37% more on the session itself.
+- Against the per-session rates from 7.2 (before ~1.10, during ~1.46, after ~1.49): items before an
+  episode are at the ordinary level; items on and after the episode sessions are denser. The press
+  appears to follow the price more often than it comes first. Timing only; whether the items on the
+  session report the move itself is not known without reading them.
+- 99 alert sessions is a small sample; no test of significance was run.
+

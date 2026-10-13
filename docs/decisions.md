@@ -334,3 +334,13 @@ queries 7 and 8 (results in `pipeline_log.md`, 2.4).
 - Key of an episode: (ticker, start_seq). Built with gaps and islands: session_seq minus ROW_NUMBER
   over (ticker, direction) is constant inside a run.
 
+## 2026-10-13 - News around episodes is reported against a base rate
+- Bank news is frequent: most 5-session windows hold a single-bank item whatever the price does. A
+  share like "95 of 96 episodes have news" says nothing on its own.
+- Phase 7 figures are reported next to the same measure for ordinary sessions (|z| < 3) of the same
+  tickers: same 5-session window (2 sessions each side), same news filter (is_sector_news = 0),
+  sessions with a z and a full window only (`sql/04_quality/720_news_base_rate.sql`).
+- The window uses following sessions. This is not look-ahead: nothing is detected or explained with
+  it, it only describes how much news surrounds a session.
+- A difference from the base rate is a difference in timing, not a cause.
+
