@@ -344,3 +344,23 @@ queries 7 and 8 (results in `pipeline_log.md`, 2.4).
   it, it only describes how much news surrounds a session.
 - A difference from the base rate is a difference in timing, not a cause.
 
+## 2026-10-13 - Labels for news read around episodes (7.4)
+- Sample: 20 items with position 'during' in `v_episode_news`, the first 20 by
+  SHA-256 of (ticker | url); file `docs/during_sample.csv`. Labels are fixed before reading.
+- Each item gets one main label, read from the sitemap title only (the text the matching used):
+  - a: report on the price or trading of this bank's shares;
+  - b: about this bank or a person directly tied to it, not mainly about the share price;
+  - c: not about this bank (wrong match), or the bank's name appears only in passing.
+- When the main label is b, `b_subtype` is filled; it is empty for a and c:
+  - b1: material event: capital, ownership, M&A, results, dividends, issuance, a regulator's
+    decision on this bank;
+  - b2: routine or promotional: products, sponsorship, awards, junior staff, administrative
+    filings, small insider trades, profiles of owners or their families.
+- Title with both a price move and an event: label by the main subject of the title, reason in note.
+- Stories about the wealth of an owner or family member clearly tied to the bank: b / b2, note
+  `owner_wealth_profile`. Not a (no price or trading report), not c (a real link to the bank).
+- Round-ups of several companies: label by what the title says about this bank, note `round-up`.
+  c only if the bank's name appears with nothing about it.
+- When the sitemap title differs from the article (seen from the URL): label by the title; what the
+  URL shows goes to note and does not change the label.
+

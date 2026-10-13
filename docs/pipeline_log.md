@@ -805,4 +805,43 @@ Views in schema `mart`, files `sql/03_transform/600-...`. Every window function 
   appears to follow the price more often than it comes first. Timing only; whether the items on the
   session report the move itself is not known without reading them.
 - 99 alert sessions is a small sample; no test of significance was run.
+- No item lost on the session frame: single-bank items with a reaction session 5,135 in fact_news,
+  5,135 after the joins and GROUP BY, 5,135 after the LEFT JOIN onto the frame; frame 4,970 rows
+  (10 x 497), so the join does not multiply rows. Overall 5,135 / 4,970 = 1.03 items per session.
+
+### 7.4 Reading the news by hand
+- MBB episodes at sessions 66 (+), 68 (-) and 69 (+), end of December 2024: their windows overlap,
+  so 35 rows are about 18 distinct items, mostly MBB's own filings (insider and family share trades,
+  union share transfer, stock dividend issuance and ex-date, board resolutions) plus a few press
+  items on partnerships (F88, Viettel). The down episode and the up episodes have nearly the same
+  list: the same items cannot account for opposite moves. Filings bunch at year end on the company's
+  calendar; the moves were about 1% (7.1). A coincidence in timing.
+- Sample of 20 'during' items (`docs/during_sample.csv`), drawn and labelled under the rules in
+  `decisions.md` (2026-10-13), title only:
+
+  | label | items |
+  |---|---|
+  | a: report on the share price or trading | 4 |
+  | b1: material event of the bank | 6 |
+  | b2: routine or promotional | 10 |
+  | c: not about the bank | 0 |
+
+- By match tier: the 4 price reports are all tier 1 (ticker in the title, e.g. "Cổ phiếu SHB ...");
+  tier 0 filings (6) and tier 2 press items (9) are all b.
+- All 20 items belong to up-side episodes (80 of the 96 episodes are up-side), so the sample says
+  nothing about news around down-side episodes.
+- SHB session 116, the largest |z| in the data (7.62): 3 items in the sample, 2 of them report the
+  shares hitting the ceiling.
+- Reading: half of the items inside episodes are routine or promotional, about a third are material
+  events, a fifth report the move itself, none is a wrong match. With 20 items these shares are
+  indicative only.
+
+### Phase 7 summary
+- 100 alert sessions -> 96 episodes (80 up, 16 down). 95 have a single-bank item within 2 sessions,
+  but so do 97.7% of ordinary sessions: having news nearby does not set episodes apart.
+- Item density: 1.44 per alert session against 1.06 per ordinary session; before an episode at the
+  ordinary level, on and after it about 40% higher.
+- Read by hand, items inside episodes are mostly routine or promotional; a fifth report the price
+  move itself. Nothing here supports a claim that news drove the moves; the timing fits the press
+  following the price at least as well.
 
