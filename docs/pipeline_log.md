@@ -765,4 +765,23 @@ Views in schema `mart`, files `sql/03_transform/600-...`. Every window function 
   examined here.
 - Adjacent alert sessions of opposite sign: one pair, MBB session 68 (down) and 69 (up). Splitting by
   direction makes them two episodes instead of one mixed episode; no other episode is affected.
+- Checked for a bad close at MBB session 68 (2024-12-30): closes 13.10, 12.97, 13.12 for sessions
+  67-69, returns -0.99% and +1.16%, sector +0.45% and -0.70%. Small moves, no sign of a wrong price.
+  The z values (-3.08, +3.93) are large because MBB's excess returns over the previous 60 sessions
+  were small: |z| >= 3 can come from a move of about 1% when the window is calm. Episodes keep
+  sum_excess_ret so the size of the move is visible next to z. For Limitations.
+
+### 7.2 News around episodes
+- `v_episode_news` (710): one row per (episode, news item); single-bank items only
+  (is_sector_news = 0), same ticker, reaction session from start_seq - 2 to end_seq + 2; LEFT JOIN
+  keeps episodes without news. position by reaction session: before / during / after.
+- 645 rows, 96 episodes. No row outside the window or with a sector item.
+- Independent recount per episode (correlated subquery on fact_news, conditions rewritten from the
+  rules) against the view, FULL JOIN: no difference. Both sides 96 episodes, 644 news rows.
+- Offsets by position: before -2 to -1 from the start, during 0 from start and end, after +1 to +2
+  from the end. Rows: before 211, during 146, after 287 (644 in total).
+- Episodes with at least one item 95 of 96; with at least one item before or during 91;
+  distinct items used 601 (644 rows: 43 rows are items inside the windows of two episodes).
+- Not yet interpretable: bank news is frequent, so most 5-session windows may hold an item whatever
+  the price does. A base rate for ordinary sessions is needed before reading 95 of 96 (7.3).
 
