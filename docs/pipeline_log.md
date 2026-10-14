@@ -859,3 +859,22 @@ Views in schema `mart`, files `sql/03_transform/600-...`. Every window function 
   no run left after the rollback. The rolled-back run used run_id 5: identity values are not
   returned by a rollback.
 
+### 8.2 Check procedure, checks 1-5
+- `sql/04_quality/800_sp_run_checks.sql`: `dq.sp_run_checks` writes a `dq_run` row, then one
+  INSERT ... SELECT per check, no transaction around the run; CATCH marks the run 'failed' when the
+  transaction can still be written, then rethrows.
+- Clean run: 5 rows written, all PASS; checked_count 10 tickers, 4,970 fact rows, 4,970
+  (ticker, date) pairs, 16 dw constraints, 497 trading sessions.
+- Each check seen failing, inside a transaction rolled back afterwards:
+  - constraint switched off (`ALTER TABLE ... NOCHECK CONSTRAINT ck_fact_price_daily_volume`):
+    dw_constraints_trusted ERROR, 1 of 16.
+  - first trading day removed from the calendar (is_trading_day = 0, session_seq = NULL; changing
+    only is_trading_day is refused by ck_dim_date_session): price_on_non_trading_day 10 rows,
+    price_sessions_per_ticker 10 tickers (497 against 496 expected), dim_date_session_seq_gap 496
+    of 496 sessions, first sample 2024-09-27 (session_seq 2, expected 1). One missing day shifts
+    every later session, so failed_count measures the symptom; the first sample key shows where
+    it starts.
+  - one STB session copied under the other STB ticker_key (the primary key allows it):
+    price_duplicate_ticker_date 1 (STB|2024-09-26, rows=2), price_sessions_per_ticker STB=498.
+  - after the rollbacks: all 5 PASS again.
+
