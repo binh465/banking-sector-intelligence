@@ -8,4 +8,5 @@ IF SCHEMA_ID(N'raw')  IS NULL EXEC(N'CREATE SCHEMA raw  AUTHORIZATION dbo');  --
 IF SCHEMA_ID(N'stg')  IS NULL EXEC(N'CREATE SCHEMA stg  AUTHORIZATION dbo');  -- typed, cleaned, filtered to window
 IF SCHEMA_ID(N'dw')   IS NULL EXEC(N'CREATE SCHEMA dw   AUTHORIZATION dbo');  -- dimensions and facts
 IF SCHEMA_ID(N'mart') IS NULL EXEC(N'CREATE SCHEMA mart AUTHORIZATION dbo');  -- analytical views for Power BI
+IF SCHEMA_ID(N'dq')   IS NULL EXEC(N'CREATE SCHEMA dq   AUTHORIZATION dbo');  -- data quality check history
 GO

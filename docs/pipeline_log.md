@@ -845,3 +845,17 @@ Views in schema `mart`, files `sql/03_transform/600-...`. Every window function 
   move itself. Nothing here supports a claim that news drove the moves; the timing fits the press
   following the price at least as well.
 
+---
+
+## Phase 8 - Data quality framework (from 2026-10-14)
+
+### 8.1 Result tables
+- Schema `dq` added to `001_create_schemas.sql`; `sql/01_ddl/500_dq_tables.sql` creates `dq.dq_run`
+  and `dq.dq_check_result` only when missing, never drops them. Decision in `decisions.md`
+  (2026-10-14).
+- Tested inside a transaction rolled back at the end: check_status PASS for 0 failures and WARN for
+  a WARN check with failures; run start and check time 0 s apart; three bad inserts rejected by
+  ck_dq_result_severity (Msg 547), ck_dq_result_counts (Msg 547) and pk_dq_check_result (Msg 2627);
+  no run left after the rollback. The rolled-back run used run_id 5: identity values are not
+  returned by a rollback.
+

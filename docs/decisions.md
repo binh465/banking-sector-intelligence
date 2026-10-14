@@ -364,3 +364,49 @@ queries 7 and 8 (results in `pipeline_log.md`, 2.4).
 - When the sitemap title differs from the article (seen from the URL): label by the title; what the
   URL shows goes to note and does not change the label.
 
+## 2026-10-14 - Data quality results: schema dq, two tables, sample keys
+- A fifth schema, `dq`, beside raw / stg / dw / mart. Check history must survive a rebuild of the
+  warehouse; kept apart from dw so that clearing dw cannot take it along. Can be granted read access
+  on its own.
+- Two tables: `dq.dq_run` (one row per run; finished_at NULL means the run stopped before the end)
+  and `dq.dq_check_result` (one row per check per run, key (run_id, check_name)). Rows are only
+  added, never overwritten.
+- No separate catalog table of checks: the checks are defined in the procedure, and a catalog would
+  be a second place to keep in step. Each result row carries the check's description as it was at
+  run time.
+- Each result has a severity: ERROR (data is wrong, do not publish) or WARN (needs a look, may be
+  valid, e.g. a return just past 7% within the 0.5 pp tolerance). check_status is PASS when nothing
+  failed, otherwise the severity.
+- sample_keys holds up to 5 failing keys, so the failing rows can be found without rerunning the
+  check.
+
+## 2026-10-14 - Data quality checks: the list, and UTC times in dq
+- Times in `dq` follow the repo convention for technical timestamps: UTC, columns named `_utc`,
+  default SYSUTCDATETIME() (started_at_utc, finished_at_utc, checked_at_utc).
+- `dq.sp_run_checks` runs 11 checks; their definitions live in the procedure only (no catalog table).
+  Each result row stores layer, severity, checked_count and description, so every run keeps its own
+  context.
+
+  | # | check_name | layer | severity | counts as failed |
+  |---|---|---|---|---|
+  | 1 | price_sessions_per_ticker | dw | ERROR | a ticker whose session count differs from the trading days in dim_date |
+  | 2 | price_on_non_trading_day | dw | ERROR | a fact_price_daily row on a day with is_trading_day = 0 |
+  | 3 | price_duplicate_ticker_date | dw | ERROR | more than one row for one (ticker, date_key) across ticker_key versions |
+  | 4 | dw_constraints_trusted | dw | ERROR | a foreign key or check constraint on a dw table that is disabled or not trusted |
+  | 5 | dim_date_session_seq_gap | dw | ERROR | session_seq of trading days not 1, 2, 3, ... without gaps |
+  | 6 | return_band_within_tolerance | mart | WARN | 7% < abs(ret) <= 7.5% |
+  | 7 | return_band_exceeded | mart | ERROR | abs(ret) > 7.5% |
+  | 8 | news_ticker_version | dw | ERROR | a fact_news row whose ticker_key version is not valid on the publish date |
+  | 9 | reconcile_price_raw_stg | stg | ERROR | a (ticker, date) whose key or OHLCV values differ between raw (in window, configured tickers) and stg |
+  | 10 | reconcile_price_stg_dw | dw | ERROR | a (ticker, date) whose key or OHLCV values differ between stg and fact_price_daily |
+  | 11 | reconcile_news_stg_dw | dw | ERROR | an (item, ticker) pair in staging (in window) missing from fact_news, or the other way |
+
+- No query for null or non-positive prices or duplicate fact keys: NOT NULL, ck_fact_price_daily_prices
+  and the primary key already enforce them. Check 4 makes sure those constraints are still enabled
+  and trusted.
+- Checks 9 and 10 compare by key and values, not row counts: equal counts can hide a changed price
+  or a stale layer (raw reloaded, stg or dw not rebuilt). Check 9 rebuilds the stg values from raw
+  with TRY_CONVERT, not CAST: a value that does not convert is reported as a failure instead of
+  stopping the run.
+- reconcile_news_stg_dw is ERROR: a difference changes the Phase 7 results.
+
