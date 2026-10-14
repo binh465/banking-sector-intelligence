@@ -24,3 +24,27 @@ SELECT CASE WHEN ABS(z) >= 3 THEN 'alert' ELSE 'ordinary' END AS session_group,
 FROM s
 WHERE z IS NOT NULL AND session_in_window = 5
 GROUP BY CASE WHEN ABS(z) >= 3 THEN 'alert' ELSE 'ordinary' END;
+
+
+-- Self-check: the LEFT JOIN onto the session frame loses no item.
+-- Three counts of single-bank items with a reaction session; all three must be equal.
+WITH news_per_session AS (
+    SELECT t.ticker, rd.session_seq, COUNT(*) AS items
+    FROM dw.fact_news f
+    JOIN dw.dim_ticker t ON t.ticker_key = f.ticker_key
+    JOIN dw.dim_date  rd ON rd.date_key  = f.reaction_date_key
+    WHERE f.is_sector_news = 0
+    GROUP BY t.ticker, rd.session_seq
+),
+s AS (
+    SELECT z.ticker, z.session_seq, ISNULL(n.items, 0) AS items
+    FROM mart.v_excess_zscore z
+    LEFT JOIN news_per_session n ON n.ticker = z.ticker AND n.session_seq = z.session_seq
+)
+SELECT
+    (SELECT COUNT(*)
+     FROM dw.fact_news f
+     WHERE f.is_sector_news = 0 AND f.reaction_date_key IS NOT NULL) AS items_in_fact,
+    (SELECT SUM(items) FROM news_per_session)                         AS items_grouped,
+    (SELECT SUM(items) FROM s)                                        AS items_on_frame,
+    (SELECT COUNT(*) FROM s)                                          AS frame_rows;
