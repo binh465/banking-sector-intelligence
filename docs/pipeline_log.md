@@ -932,3 +932,41 @@ Views in schema `mart`, files `sql/03_transform/600-...`. Every window function 
 - For Limitations: the reconciliations re-apply the load rules, so they catch stale or edited layers
   and partial loads, not a rule that is wrong in both the loader and the check.
 
+---
+
+## Phase 9 - Query performance (2026-10-15)
+
+Protocol and rule in `decisions.md` (2026-10-15); scripts `sql/04_quality/900_perf_measure.sql`,
+`910_perf_indexes.sql`. 1 warm-up + 5 measured runs per statement, warm cache, results discarded;
+median, min and max of the 5 runs; each index alone against the same baseline.
+
+| statement | config | median ms | min-max ms | median CPU ms | logical reads |
+|---|---|---|---|---|---|
+| Q1 v_excess_zscore | baseline | 65.6 | 58.7-122.0 | 65 | 243 |
+| | I1 | 60.9 | 58.0-65.8 | 60 | 243 |
+| | I2 | 63.0 | 57.6-63.7 | 62 | 183 |
+| Q2 v_episode_news | baseline | 69.6 | 63.9-77.0 | 70 | 2,213 |
+| | I1 | 71.3 | 67.1-71.9 | 71 | 2,213 |
+| | I2 | 77.6 | 68.6-80.3 | 77 | 2,153 |
+| Q3 sp_run_checks | baseline | 2,666 | 2,603-2,701 | 2,632 | 392,234-392,238 |
+| | I1 | 2,638 | 2,600-2,825 | 2,604 | 392,234-392,235 |
+| | I2 | 2,818 | 2,701-2,873 | 2,782 | 392,081-393,227 |
+| L sp_load_fact_news | baseline | 474 | 467-565 | 472 | 314,050-314,087 |
+| | I1 | 465 | 447-965 | 464 | 314,050-314,083 |
+| | I2 | 487 | 470-525 | 485 | 287,998-288,001 |
+
+- I1 (fact_news (ticker_key, reaction_date_key) INCLUDE (is_sector_news)): Q2, its target, has the
+  same logical reads (2,213) and a median 2% higher. The same reads mean the plan did not use the
+  index: the view reads the news of all 96 episodes, so a scan of a 6,849-row table is as cheap.
+  The load is not slower. Fails the rule (no 20% drop, no fewer reads). Dropped.
+- I2 (fact_price_daily (date_key), the SSMS Missing Index suggestion): Q1 reads drop 25% (243 to
+  183) but the median drops 4%, far from 20%; 243 pages are already in memory and the time goes to
+  the joins, sorts and window functions, which an index on fact_price_daily cannot remove (ticker and
+  session_seq come from the dimensions). Q3 is slower: median 2,818 ms, above the whole baseline range
+  (2,603-2,701). Fails the rule. Dropped.
+- Not explained: the load reads 288,000 pages with I2 in place against 314,000 without, though it does
+  not read fact_price_daily. No decision depends on it; recorded as seen.
+- Result: no index added. At this size (4,970 price rows, 6,849 news rows) the statements spend their
+  time in the work the views do, not in finding rows. The one change that mattered was rewriting a
+  query (680: 123 s to 5.8 s), not adding an index.
+

@@ -426,3 +426,8 @@ queries 7 and 8 (results in `pipeline_log.md`, 2.4).
   more than the spread between its runs. Faster without fewer reads is not enough.
 - Fixed before measuring. Dropping both indexes is an acceptable result.
 
+## 2026-10-15 - Phase 9 result: no index added
+- I1 and I2 both fail the rule fixed before measuring (pipeline_log, Phase 9). I1 left Q2's reads
+  unchanged; I2 cut Q1's reads by 25% but its time by 4%, and made Q3 slower than the whole baseline
+  range. Both dropped; fact_price_daily and fact_news keep only their primary keys.
+
