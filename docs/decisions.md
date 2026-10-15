@@ -410,3 +410,19 @@ queries 7 and 8 (results in `pipeline_log.md`, 2.4).
   stopping the run.
 - reconcile_news_stg_dw is ERROR: a difference changes the Phase 7 results.
 
+## 2026-10-15 - Phase 9: what is measured and when an index stays
+- Statements: Q1 full read of `mart.v_excess_zscore`, Q2 full read of `mart.v_episode_news` (both
+  through CHECKSUM_AGG(CHECKSUM(*)) so every output column is computed), Q3 `EXEC dq.sp_run_checks`,
+  and the write cost `EXEC dw.sp_load_fact_news`. Q3 and the load run inside a transaction rolled
+  back after the measurement.
+- Candidates, each tried alone against the same baseline: I1 dw.fact_news (ticker_key,
+  reaction_date_key) INCLUDE (is_sector_news); I2 dw.fact_price_daily (date_key), the Missing Index
+  suggestion from the 680 plan. Both together only if each passes alone.
+- Each statement: 1 warm-up run and 5 measured runs, warm cache, results discarded in SSMS; median
+  elapsed and CPU, logical reads, one actual plan. Scripts `sql/04_quality/900_perf_measure.sql`,
+  `910_perf_indexes.sql`.
+- An index stays only if both hold: the median elapsed of at least one target statement drops by
+  20% or more and its logical reads drop too; and no statement, the load included, gets slower by
+  more than the spread between its runs. Faster without fewer reads is not enough.
+- Fixed before measuring. Dropping both indexes is an acceptable result.
+
