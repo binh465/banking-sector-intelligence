@@ -878,3 +878,19 @@ Views in schema `mart`, files `sql/03_transform/600-...`. Every window function 
     price_duplicate_ticker_date 1 (STB|2024-09-26, rows=2), price_sessions_per_ticker STB=498.
   - after the rollbacks: all 5 PASS again.
 
+### 8.2 Checks 6-8, test script
+- Added return_band_within_tolerance (mart, WARN), return_band_exceeded (mart, ERROR) on
+  `mart.v_return_daily`, and news_ticker_version (dw, ERROR) on `dw.fact_news`.
+- `sql/04_quality/810_dq_check_tests.sql`: one block per damage, each inside a transaction rolled
+  back after the run, XACT_ABORT ON, `@@TRANCOUNT` checked at the end. Only the first and last runs
+  stay in the history, so dq_run ids have gaps where test runs were rolled back.
+- Clean run: 8 checks written, none with checked_count 0. return_band_within_tolerance WARN with
+  5 sessions (first samples HDB|2025-12-16, MBB|2025-08-14), the same count as the 5 sessions beyond
+  7% and within 7.5% found in Phase 2 (2.3); return_band_exceeded 0 of 4,960 returns.
+- Damage results: constraint off -> dw_constraints_trusted 1; trading day removed -> checks 1, 2, 5
+  as in the first test, and the return checks see 4,950 returns (v_price_session keeps trading days
+  only); STB session copied -> price_duplicate_ticker_date 1, STB=498; ACB close doubled at session
+  100 -> return_band_exceeded 2 (ACB|2025-02-20 +101.18% and the session after it);
+  STB news row moved to the other version -> news_ticker_version 1 (STB|301|2024-09-27).
+- After all rollbacks: no open transaction, clean run again.
+

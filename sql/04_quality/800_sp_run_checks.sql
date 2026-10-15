@@ -183,6 +183,88 @@ BEGIN
             ),
             N'Trading-day session_seq must form a continuous sequence starting at 1 when ordered by full_date.';
 		---------------------------------------
+		WITH returns AS (
+			SELECT ticker, session_seq, full_date, ret
+			FROM mart.v_return_daily
+			WHERE ret IS NOT NULL
+		),
+		bad AS (
+			SELECT ticker, session_seq, full_date, ret
+			FROM returns
+			WHERE ABS(ret) > 0.07 AND ABS(ret) <= 0.075 
+		)
+		INSERT INTO dq.dq_check_result
+            (run_id, check_name, layer, severity,
+             checked_count, failed_count, sample_keys, description)
+		SELECT @run_id,  'return_band_within_tolerance', 'mart', 'WARN',
+            (SELECT COUNT(*) FROM returns),
+            (SELECT COUNT(*) FROM bad),
+			(
+				SELECT STRING_AGG(key_sample, N'; ') WITHIN GROUP (ORDER BY ticker, session_seq)
+				FROM (
+					SELECT TOP(5) ticker, session_seq, 
+						CONCAT(ticker, N'|', CONVERT(NVARCHAR(10), full_date, 23), N' (ret=', FORMAT(ret, 'P2', 'en-US'), N')'
+						) AS key_sample
+					FROM bad
+					ORDER BY ticker, session_seq
+				) AS s
+			),
+			N'Warn when ABS(ret) is greater than 7% and at most 7.5%, using the Phase 2 thresholds.';
+
+		----------------------------------------
+		WITH returns AS (
+			SELECT ticker, session_seq, full_date, ret
+			FROM mart.v_return_daily
+			WHERE ret IS NOT NULL
+		),
+		bad AS (
+			SELECT ticker, session_seq, full_date, ret
+			FROM returns
+			WHERE ABS(ret) > 0.075
+		)
+		INSERT INTO dq.dq_check_result
+            (run_id, check_name, layer, severity,
+             checked_count, failed_count, sample_keys, description)
+		SELECT @run_id,  'return_band_exceeded', 'mart', 'ERROR',
+            (SELECT COUNT(*) FROM returns),
+            (SELECT COUNT(*) FROM bad),
+			(
+				SELECT STRING_AGG(key_sample, N'; ') WITHIN GROUP (ORDER BY ticker, session_seq)
+				FROM (
+					SELECT TOP(5) ticker, session_seq, 
+						CONCAT(ticker, N'|', CONVERT(NVARCHAR(10), full_date, 23), N' (ret=', FORMAT(ret, 'P2', 'en-US'), N')'
+						) AS key_sample
+					FROM bad
+					ORDER BY ticker, session_seq
+				) AS s
+			),
+			N'Error when ABS(ret) exceeds 7.5%, using the Phase 2 threshold.';
+		----------------------------------------
+		WITH bad AS (
+			SELECT t.ticker, f.article_key, pd.full_date
+			FROM dw.fact_news f
+			INNER JOIN dw.dim_ticker t ON t.ticker_key = f.ticker_key
+			INNER JOIN dw.dim_date AS pd ON pd.date_key = f.publish_date_key
+			WHERE pd.full_date NOT BETWEEN t.valid_from AND t.valid_to
+		)
+		INSERT INTO dq.dq_check_result
+            (run_id, check_name, layer, severity,
+             checked_count, failed_count, sample_keys, description)
+		SELECT @run_id,  'news_ticker_version', 'dw', 'ERROR',
+            (SELECT COUNT(*) FROM dw.fact_news),
+            (SELECT COUNT(*) FROM bad),
+			(
+				SELECT STRING_AGG(key_sample, N'; ') WITHIN GROUP (ORDER BY ticker, article_key, full_date)
+				FROM (
+					SELECT TOP(5) ticker, article_key, full_date,
+						CONCAT(ticker, N'|', article_key, N'|', CONVERT(NVARCHAR(10), full_date, 23)
+						) AS key_sample
+					FROM bad
+					ORDER BY ticker, article_key, full_date
+				) AS s
+			),
+			 N'Each fact_news row must reference a dim_ticker version valid on its publish date.';
+		------------------------------------------
 		UPDATE dq.dq_run SET run_status = 'completed', finished_at_utc = SYSUTCDATETIME()
 		WHERE run_id = @run_id;
 	END TRY
