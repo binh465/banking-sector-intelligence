@@ -265,6 +265,170 @@ BEGIN
 			),
 			 N'Each fact_news row must reference a dim_ticker version valid on its publish date.';
 		------------------------------------------
+		;WITH raw_rows AS (
+			SELECT d.ticker, d.trade_date,
+				TRY_CONVERT(DECIMAL(18,4), p.[open]) AS open_price,
+				TRY_CONVERT(DECIMAL(18,4), p.[high])  AS high_price,
+                TRY_CONVERT(DECIMAL(18,4), p.[low])   AS low_price,
+                TRY_CONVERT(DECIMAL(18,4), p.[close]) AS close_price,
+                TRY_CONVERT(BIGINT, p.[volume])       AS volume
+			FROM raw.raw_price_daily p
+			CROSS APPLY (
+				SELECT UPPER(LTRIM(RTRIM(p.[symbol]))) AS ticker,
+				CAST(TRY_CONVERT(DATETIME2(0), p.[time]) AS DATE) AS trade_date
+			) AS d
+			INNER JOIN raw.raw_ticker_config c ON c.ticker = d.ticker
+			CROSS JOIN stg.stg_scope s
+			WHERE d.trade_date BETWEEN s.start_date AND s.end_date
+		),
+		stg_rows AS (
+			SELECT ticker, trade_date, open_price, high_price, low_price, close_price, volume
+			FROM stg.stg_price_daily
+		),
+		raw_minus_stg AS (
+			SELECT ticker, trade_date, open_price, high_price, low_price, close_price, volume
+			FROM raw_rows
+			EXCEPT 
+			SELECT ticker, trade_date, open_price, high_price, low_price, close_price, volume
+			FROM stg_rows
+		),
+		stg_minus_raw AS (
+			SELECT ticker, trade_date, open_price, high_price, low_price, close_price, volume
+            FROM stg_rows
+            EXCEPT
+            SELECT ticker, trade_date, open_price, high_price, low_price, close_price, volume
+            FROM raw_rows
+		),
+		bad AS (
+			SELECT ticker, trade_date FROM raw_minus_stg
+            UNION
+            SELECT ticker, trade_date FROM stg_minus_raw
+		),
+		 all_keys AS (
+            SELECT ticker, trade_date FROM raw_rows
+            UNION
+            SELECT ticker, trade_date FROM stg_rows
+        )
+		INSERT INTO dq.dq_check_result
+              (run_id, check_name, layer, severity, checked_count, failed_count, sample_keys, description)
+        SELECT @run_id, 'reconcile_price_raw_stg', 'stg', 'ERROR',
+               (SELECT COUNT(*) FROM all_keys),
+               (SELECT COUNT(*) FROM bad),
+               (SELECT STRING_AGG(key_sample, N'; ') WITHIN GROUP (ORDER BY ticker, trade_date)
+                FROM (
+                    SELECT TOP (5) ticker, trade_date,
+                           CONCAT(ticker, N'|', CONVERT(NVARCHAR(10), trade_date, 23)) AS key_sample
+                    FROM bad
+                    ORDER BY ticker, trade_date
+                ) AS s),
+               N'stg_price_daily must match configured in-window raw_price_daily by ticker/date and OHLCV values.';
+		--------------------------------------------
+		;WITH stg_rows AS (
+			SELECT ticker, trade_date, open_price, high_price, low_price, close_price, volume
+			FROM stg.stg_price_daily
+		),
+		dw_rows AS (
+			SELECT t.ticker, d.full_date AS trade_date,
+				   f.open_price, f.high_price, f.low_price, f.close_price, f.volume
+			FROM dw.fact_price_daily f
+			INNER JOIN dw.dim_ticker t ON t.ticker_key = f.ticker_key
+			INNER JOIN dw.dim_date d   ON d.date_key   = f.date_key
+		),
+		stg_minus_dw AS (
+			SELECT ticker, trade_date, open_price, high_price, low_price, close_price, volume FROM stg_rows
+			EXCEPT
+			SELECT ticker, trade_date, open_price, high_price, low_price, close_price, volume FROM dw_rows
+		),
+		dw_minus_stg AS (
+			SELECT ticker, trade_date, open_price, high_price, low_price, close_price, volume FROM dw_rows
+			EXCEPT
+			SELECT ticker, trade_date, open_price, high_price, low_price, close_price, volume FROM stg_rows
+		),
+		bad AS (
+			SELECT ticker, trade_date FROM stg_minus_dw
+			UNION
+			SELECT ticker, trade_date FROM dw_minus_stg
+		),
+		all_keys AS (
+			SELECT ticker, trade_date FROM stg_rows
+			UNION
+			SELECT ticker, trade_date FROM dw_rows
+		)
+		INSERT INTO dq.dq_check_result
+			  (run_id, check_name, layer, severity, checked_count, failed_count, sample_keys, description)
+		SELECT @run_id, 'reconcile_price_stg_dw', 'dw', 'ERROR',
+			   (SELECT COUNT(*) FROM all_keys),
+			   (SELECT COUNT(*) FROM bad),
+			   (SELECT STRING_AGG(key_sample, N'; ') WITHIN GROUP (ORDER BY ticker, trade_date)
+				FROM (
+					SELECT TOP (5) ticker, trade_date,
+						   CONCAT(ticker, N'|', CONVERT(NVARCHAR(10), trade_date, 23)) AS key_sample
+					FROM bad
+					ORDER BY ticker, trade_date
+				) AS s),
+			   N'fact_price_daily must match stg_price_daily by ticker/date and OHLCV values (all ticker_key versions together).';
+		--------------------------------------------
+		;WITH src AS (
+			SELECT m.article_key, b.ticker
+			FROM stg.stg_article_bank_match m
+			INNER JOIN stg.stg_bank b ON b.bank_id = m.bank_id AND b.in_scope = 1
+
+			UNION ALL
+
+			SELECT a.article_key, n.ticker
+			FROM stg.stg_ticker_news n
+			INNER JOIN dw.dim_article a ON a.url = n.url
+			WHERE n.item_kind = 'disclosure'
+		),
+		src_in_window AS (
+			SELECT s.article_key, s.ticker
+			FROM src AS s
+			INNER JOIN dw.dim_article a ON a.article_key = s.article_key
+			WHERE EXISTS (
+				SELECT 1
+				FROM dw.dim_date d
+				WHERE d.full_date = CAST(a.publish_time_local AS DATE)
+			)
+		),
+		fact AS (
+			SELECT f.article_key, t.ticker
+			FROM dw.fact_news f
+			INNER JOIN dw.dim_ticker t ON t.ticker_key = f.ticker_key
+		),
+		source_minus_fact AS (
+            SELECT article_key, ticker FROM src_in_window
+            EXCEPT
+            SELECT article_key, ticker FROM fact
+        ),
+        fact_minus_source AS (
+            SELECT article_key, ticker FROM fact
+            EXCEPT
+            SELECT article_key, ticker FROM src_in_window
+        ),
+        bad AS (
+            SELECT article_key, ticker FROM source_minus_fact
+            UNION
+            SELECT article_key, ticker FROM fact_minus_source
+        ),
+        all_pairs AS (
+            SELECT article_key, ticker FROM src_in_window
+            UNION
+            SELECT article_key, ticker FROM fact
+        )
+        INSERT INTO dq.dq_check_result
+              (run_id, check_name, layer, severity, checked_count, failed_count, sample_keys, description)
+        SELECT @run_id, 'reconcile_news_stg_dw', 'dw', 'ERROR',
+               (SELECT COUNT(*) FROM all_pairs),
+               (SELECT COUNT(*) FROM bad),
+               (SELECT STRING_AGG(key_sample, N'; ') WITHIN GROUP (ORDER BY ticker, article_key)
+                FROM (
+                    SELECT TOP (5) ticker, article_key,
+                           CONCAT(ticker, N'|', article_key) AS key_sample
+                    FROM bad
+                    ORDER BY ticker, article_key
+                ) AS s),
+               N'In-window (article_key, ticker) pairs must match between staging expectations and fact_news in both directions.';
+		--------------------------------------------
 		UPDATE dq.dq_run SET run_status = 'completed', finished_at_utc = SYSUTCDATETIME()
 		WHERE run_id = @run_id;
 	END TRY

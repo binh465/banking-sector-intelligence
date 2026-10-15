@@ -894,3 +894,41 @@ Views in schema `mart`, files `sql/03_transform/600-...`. Every window function 
   STB news row moved to the other version -> news_ticker_version 1 (STB|301|2024-09-27).
 - After all rollbacks: no open transaction, clean run again.
 
+### 8.2 Checks 9-11 (reconciliation by key and value)
+- reconcile_price_raw_stg (stg): stg values rebuilt from raw with the rules of
+  `sql/02_load/100_load_stg_price.sql` (configured tickers, inside the window), TRY_CONVERT instead of
+  CAST so a bad value is reported, not fatal. reconcile_price_stg_dw (dw): fact rows mapped back to
+  (ticker, trade_date) through dim_ticker and dim_date. reconcile_news_stg_dw (dw): the staging pairs
+  of `340_fact_news_checks.sql` query 6 against fact_news on (article_key, ticker).
+- Each: EXCEPT in both directions on the key and the values, keys of both directions joined with
+  UNION (a changed value counts once); checked_count = keys in the union of both sides, so
+  failed_count can never exceed it.
+- Clean run: 11 checks written, none with checked_count 0; the three reconciliations pass on 4,970,
+  4,970 and 6,849 keys.
+- Damage results (each rolled back):
+  - stg close + 0.01 (ACB, 2025-07-16): reconcile_price_raw_stg 1 and reconcile_price_stg_dw 1,
+    same key; stg sits between the two, so it differs from both. No band check sees a 0.01 change.
+  - dw close + 0.01, same session: reconcile_price_stg_dw 1 (ACB|2025-07-16).
+  - dw close doubled (block 5): return_band_exceeded 2 and reconcile_price_stg_dw 1.
+  - one fact_news row deleted: reconcile_news_stg_dw 1 (CTG|1); news_ticker_version sees 6,848 rows;
+    reconcile checked_count stays 6,849 (union of both sides).
+  - STB news row moved to the other STB version: news_ticker_version 1, reconcile_news_stg_dw PASS
+    (the pair is still (article, STB)); the two checks cover different faults.
+- The whole test script (11 procedure runs) took 26 s, about 2-3 s per run of 11 checks.
+
+### Phase 8 summary
+- `dq` schema with run history (`dq_run`, `dq_check_result`), UTC times, rows only appended.
+- `dq.sp_run_checks`: 11 set-based checks, no transaction around the run, a result row for every
+  check even when it passes, up to 5 failing keys per check.
+- Every check has been seen failing at least once on data damaged inside a rolled-back transaction
+  (`810_dq_check_tests.sql`). Two checks were blind before that: a missing INSERT (the check ran and
+  wrote nothing) and joins on the wrong id in sys.foreign_keys / sys.check_constraints (0 rows looked
+  at, always PASS). checks_written and checked_count = 0 are now checked after every run.
+- Two layers: constraints refuse bad rows on write (ck_dim_date_session refused the first damage
+  script); the checks find what got in while a constraint was off, and check 4 finds the constraint
+  that was off.
+- Current data: all ERROR checks pass; 1 WARN, return_band_within_tolerance, 5 sessions just past 7%,
+  the same 5 found in Phase 2.
+- For Limitations: the reconciliations re-apply the load rules, so they catch stale or edited layers
+  and partial loads, not a rule that is wrong in both the loader and the check.
+

@@ -1,6 +1,6 @@
 -- Tests for dq.sp_run_checks (sql/04_quality/800_sp_run_checks.sql). Run 800 first.
 -- Each block damages dw data inside a transaction, runs the checks and rolls back, so the damage and
--- the dq_run / dq_check_result rows of that run are both undone. Only blocks 0 and 9 leave a run in
+-- the dq_run / dq_check_result rows of that run are both undone. Only blocks 0 and 10 leave a run in
 -- the history.
 -- XACT_ABORT ON: if anything inside a block fails, the whole block is rolled back instead of leaving
 -- a transaction open.
@@ -83,7 +83,38 @@ EXEC dq.sp_run_checks;
 ROLLBACK TRANSACTION;
 GO
 
--------------------------------------------------------------------- 9. after all rollbacks
+-------------------------------------------------------------------- 7. checks 9, 10: one stg close changed
+-- stg sits between raw and dw, so a change there differs from both neighbours.
+BEGIN TRANSACTION;
+UPDATE s
+SET close_price = s.close_price + 0.01
+FROM stg.stg_price_daily s
+WHERE s.ticker = 'ACB'
+  AND s.trade_date = (SELECT full_date FROM dw.dim_date WHERE session_seq = 200);
+EXEC dq.sp_run_checks;
+ROLLBACK TRANSACTION;
+GO
+
+-------------------------------------------------------------------- 8. check 10: one dw close changed
+-- high_price moves with it so ck_fact_price_daily_prices still holds.
+BEGIN TRANSACTION;
+UPDATE f
+SET close_price = f.close_price + 0.01, high_price = f.high_price + 0.01
+FROM dw.fact_price_daily f
+WHERE f.ticker_key = (SELECT MIN(ticker_key) FROM dw.dim_ticker WHERE ticker = 'ACB')
+  AND f.date_key   = (SELECT date_key FROM dw.dim_date WHERE session_seq = 200);
+EXEC dq.sp_run_checks;
+ROLLBACK TRANSACTION;
+GO
+
+-------------------------------------------------------------------- 9. check 11: one fact_news row missing
+BEGIN TRANSACTION;
+DELETE TOP (1) FROM dw.fact_news;
+EXEC dq.sp_run_checks;
+ROLLBACK TRANSACTION;
+GO
+
+-------------------------------------------------------------------- 10. after all rollbacks
 -- No transaction may be left open, and a clean run again.
 SELECT @@TRANCOUNT AS open_transactions;
 EXEC dq.sp_run_checks;
