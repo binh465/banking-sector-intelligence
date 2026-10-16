@@ -1,6 +1,7 @@
 -- Phase 9 measurement (decisions.md 2026-10-15). Run in ONE query window, in this order:
---   A once; B with @config = 'baseline'; create I1 (910), B with 'I1', drop I1;
---   create I2 (910), B with 'I2'; C at the end. #perf lives as long as the window.
+--   A once; B with @config = 'baseline'; apply I1 (910), B with 'I1', revert I1;
+--   create I2 (910), B with 'I2', drop I2; C at the end. #perf lives as long as the window.
+--   Run the last query of 910 after every index change and before B.
 -- Before B: Query > Query Options > Results > Grid > "Discard results after execution", so drawing
 -- result grids does not count. Warm cache: no DBCC DROPCLEANBUFFERS.
 -- Each statement runs 6 times; run 1 warms up and is not used.
@@ -26,7 +27,7 @@ IF OBJECT_ID(N'tempdb..#perf') IS NULL
 GO
 
 ---------------------------------------------------------------------------- B. one configuration
-DECLARE @config VARCHAR(20) = 'baseline';   -- 'baseline', 'I1', 'I2'
+DECLARE @config VARCHAR(20) = 'I2';   -- 'baseline', 'I1', 'I2'
 
 IF EXISTS (SELECT 1 FROM #perf WHERE config = @config)
     THROW 50900, N'#perf already holds this configuration; delete its rows first', 1;

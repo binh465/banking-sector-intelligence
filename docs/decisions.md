@@ -427,7 +427,15 @@ queries 7 and 8 (results in `pipeline_log.md`, 2.4).
 - Fixed before measuring. Dropping both indexes is an acceptable result.
 
 ## 2026-10-15 - Phase 9 result: no index added
-- I1 and I2 both fail the rule fixed before measuring (pipeline_log, Phase 9). I1 left Q2's reads
-  unchanged; I2 cut Q1's reads by 25% but its time by 4%, and made Q3 slower than the whole baseline
-  range. Both dropped; fact_price_daily and fact_news keep only their primary keys.
+- Superseded by 2026-10-16: the measurements behind it were taken with the wrong index state.
+
+## 2026-10-16 - Phase 9 re-measured: no index added
+- Run 1 (2026-10-15) is not used: the I1 create was skipped because `01_ddl/340` already defines an
+  index with that name, and the I1 drop removed it, so I2 was measured without it (pipeline_log,
+  Phase 9, run 1).
+- I1 is now defined as the 340 index `(ticker_key, reaction_date_key)` widened with INCLUDE
+  (is_sector_news), applied and reverted with DROP_EXISTING.
+- Run 2, rule unchanged: I1 best target gain 2.0% (Q2), I2 2.7% (Q1, reads -25%). Both fail; I1
+  reverted, I2 dropped. fact_news keeps the 340 index; fact_price_daily keeps only its primary key.
+- The index state is checked with the last query of 910 before every measured configuration.
 

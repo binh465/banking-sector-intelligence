@@ -934,12 +934,13 @@ Views in schema `mart`, files `sql/03_transform/600-...`. Every window function 
 
 ---
 
-## Phase 9 - Query performance (2026-10-15)
+## Phase 9 - Query performance (2026-10-15, re-measured 2026-10-16)
 
 Protocol and rule in `decisions.md` (2026-10-15); scripts `sql/04_quality/900_perf_measure.sql`,
 `910_perf_indexes.sql`. 1 warm-up + 5 measured runs per statement, warm cache, results discarded;
 median, min and max of the 5 runs; each index alone against the same baseline.
 
+### Run 1 (2026-10-15) - not used for the decision
 | statement | config | median ms | min-max ms | median CPU ms | logical reads |
 |---|---|---|---|---|---|
 | Q1 v_excess_zscore | baseline | 65.6 | 58.7-122.0 | 65 | 243 |
@@ -955,18 +956,53 @@ median, min and max of the 5 runs; each index alone against the same baseline.
 | | I1 | 465 | 447-965 | 464 | 314,050-314,083 |
 | | I2 | 487 | 470-525 | 485 | 287,998-288,001 |
 
-- I1 (fact_news (ticker_key, reaction_date_key) INCLUDE (is_sector_news)): Q2, its target, has the
-  same logical reads (2,213) and a median 2% higher. The same reads mean the plan did not use the
-  index: the view reads the news of all 96 episodes, so a scan of a 6,849-row table is as cheap.
-  The load is not slower. Fails the rule (no 20% drop, no fewer reads). Dropped.
-- I2 (fact_price_daily (date_key), the SSMS Missing Index suggestion): Q1 reads drop 25% (243 to
-  183) but the median drops 4%, far from 20%; 243 pages are already in memory and the time goes to
-  the joins, sorts and window functions, which an index on fact_price_daily cannot remove (ticker and
-  session_seq come from the dimensions). Q3 is slower: median 2,818 ms, above the whole baseline range
-  (2,603-2,701). Fails the rule. Dropped.
-- Not explained: the load reads 288,000 pages with I2 in place against 314,000 without, though it does
-  not read fact_price_daily. No decision depends on it; recorded as seen.
-- Result: no index added. At this size (4,970 price rows, 6,849 news rows) the statements spend their
-  time in the work the views do, not in finding rows. The one change that mattered was rewriting a
-  query (680: 123 s to 5.8 s), not adding an index.
+- `01_ddl/340` already creates `ix_fact_news_ticker_reaction (ticker_key, reaction_date_key)`, the
+  name the I1 create used. Its IF NOT EXISTS skipped the create, and the I1 drop then removed the 340
+  index. The baseline ran with the 340 index, the I1 rows are a repeat of the baseline, and the I2 rows
+  ran with I2 but without the 340 index.
+- Evidence: default trace (covering 2026-10-14 08:45 onward) shows Object:Deleted for
+  `ix_fact_news_ticker_reaction` at 2026-10-15 21:25:43 and no Object:Created; I2 created 21:25:54,
+  deleted 21:29:09. The I1 rows have the same logical reads as the baseline for Q2, Q3 and the load.
+  The load read 288,000 pages under I2 against 314,000 in the baseline: one index fewer on fact_news
+  to maintain.
+- Fixes: 340 index recreated; 910 applies I1 to the existing index with DROP_EXISTING and reverts it
+  the same way, the I2 create and drop fail instead of skipping, and the last query of 910 lists the
+  key and included columns of every nonclustered index on the two fact tables, failing outside
+  BankingSectorIntelligence. Index state checked with it before every configuration in run 2.
 
+### Run 2 (2026-10-16)
+
+Index state: baseline = primary keys + the 340 index; I1 = the 340 index rebuilt with INCLUDE
+(is_sector_news); I2 = baseline + `ix_fact_price_daily_date (date_key)`. All three in one query window.
+
+| statement | config | median ms | min-max ms | median CPU ms | logical reads |
+|---|---|---|---|---|---|
+| Q1 v_excess_zscore | baseline | 61.4 | 53.8-63.9 | 61 | 243 |
+| | I1 | 55.4 | 53.5-62.0 | 56 | 243 |
+| | I2 | 59.7 | 55.6-64.4 | 59 | 183 |
+| Q2 v_episode_news | baseline | 70.5 | 62.3-84.1 | 71 | 2,213 |
+| | I1 | 69.1 | 67.1-88.3 | 70 | 2,212 |
+| | I2 | 69.0 | 65.7-70.2 | 69 | 2,152 |
+| Q3 sp_run_checks | baseline | 2,632 | 2,414-2,705 | 2,577 | 392,192-392,258 |
+| | I1 | 2,505 | 2,500-2,706 | 2,466 | 392,189-392,190 |
+| | I2 | 2,571 | 2,410-2,766 | 2,537 | 392,035-392,039 |
+| L sp_load_fact_news | baseline | 505 | 470-889 | 496 | 362,924-362,928 |
+| | I1 | 509 | 475-617 | 501 | 362,924-362,927 |
+| | I2 | 503 | 463-507 | 495 | 362,921-362,927 |
+
+- Noise: I1 is on fact_news and Q1 does not read fact_news (same 243 reads), yet Q1's median is 9.7%
+  lower under I1. Differences of about 10% on these statements are run-to-run variation; the 20% rule
+  is above it.
+- I1: Q2, its target, 2.0% faster with 1 page fewer (2,213 to 2,212); Q3 4.8% faster with the same
+  reads. No statement slower beyond its spread (load +0.8%). Fails the rule. Reverted to the 340
+  definition.
+- I2: Q1 reads drop 25% (243 to 183), its median 2.7%. The pages are already in memory and the time
+  goes to the joins, sorts and window functions, which an index on fact_price_daily cannot remove.
+  Q2 and Q3 about 2% faster, the load unchanged. Fails the rule. Dropped. The run 1 finding that I2
+  made Q3 slower is not reproduced: 2,571 ms is inside the baseline range.
+- Not explained: the load reads about 362,900 pages in run 2 against 314,000 in the run 1 baseline,
+  with the same indexes on fact_news. The 340 index was rebuilt in between (new statistics), which
+  may give a different plan; not checked. No decision depends on it; recorded as seen.
+- Result: no index added; the 340 index stays as defined. At this size (4,970 price rows, 6,849 news
+  rows) the statements spend their time in the work the views do, not in finding rows. The one change
+  that mattered was rewriting a query (680: 123 s to 5.8 s), not adding an index.
