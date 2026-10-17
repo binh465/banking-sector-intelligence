@@ -1006,3 +1006,45 @@ Index state: baseline = primary keys + the 340 index; I1 = the 340 index rebuilt
 - Result: no index added; the 340 index stays as defined. At this size (4,970 price rows, 6,849 news
   rows) the statements spend their time in the work the views do, not in finding rows. The one change
   that mattered was rewriting a query (680: 123 s to 5.8 s), not adding an index.
+
+---
+
+## Phase 10 - Power BI (from 2026-10-16)
+
+Model and reasons in `decisions.md` (2026-10-16).
+
+### 10.2 Report views (`sql/03_transform/800-860`, schema `mart`)
+Power BI reads only these views. Explicit column lists, one grain per view.
+
+| file | view | grain | source |
+|---|---|---|---|
+| 800 | v_pbi_date | one calendar day | dw.dim_date |
+| 810 | v_pbi_ticker | one ticker | dw.dim_ticker, is_current = 1 |
+| 820 | v_pbi_sector_session | one session | v_sector_index (630) |
+| 830 | v_pbi_episode | one episode | v_alert_episode (700) + news counts by position from 710 |
+| 840 | v_pbi_ticker_session | one ticker in one session | 650 + 600, 660, 670, 680 on (ticker, session_seq); episode by session range |
+| 850 | v_pbi_episode_news | one episode and one news item; an episode without news keeps one row | v_episode_news (710) + url |
+| 860 | v_pbi_news | one news item and one ticker | dw.fact_news + dim_ticker + dim_article |
+
+- episode_key = CONCAT(ticker, '|', start_seq), the same expression in 830 and 850; stable across
+  refreshes, unlike ROW_NUMBER.
+- The |z| >= 3 threshold stays in 700 only. 840 marks a session as an alert when it falls inside an
+  episode (session_seq BETWEEN start_seq AND end_seq); is_alert is NULL where z is NULL.
+- 840 carries no sector_index (it would repeat 10 times per session); the sector line comes from 820.
+- 830 counts news per episode first (GROUP BY ticker, start_seq) and joins one to one.
+
+Checks, each against its source and by a second route:
+- 800: 730 rows = dim_date = distinct dates = days from first to last date, no NULL dates;
+  2024-09-26 to 2026-09-25 as in `config/scope.yaml`; 497 trading days = session_seq count = max
+  session_seq = stg_calendar rows.
+- 830: 96 rows = distinct episode_key = v_alert_episode; news counted 644 = news rows in 710.
+- 840: 4,970 rows = distinct (ticker, session_seq) = v_relative_strength; NULL close 0; NULL corr_60
+  600 (60 x 10); NULL z and NULL is_alert 610 (61 x 10); alert sessions 100 = sessions in episodes =
+  sessions with |z| >= 3 counted on v_excess_zscore. z and close_price equal to their source views on
+  every row (EXISTS ... EXCEPT, NULL-safe): 0 mismatches.
+- 850: 645 rows = 710 = distinct (episode_key, article_key); 96 episodes = 830; 644 news rows + 1
+  episode without news; no news row without url; no episode_key missing from 830.
+- 860: 6,849 rows = fact_news = distinct (article_key, ticker); 17 rows without a reaction session,
+  same as fact_news (reaction after the window end).
+- 644 counts (episode, news item) pairs, not distinct articles: an item can fall in the windows of
+  two nearby episodes of the same ticker.

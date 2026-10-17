@@ -439,3 +439,26 @@ queries 7 and 8 (results in `pipeline_log.md`, 2.4).
   reverted, I2 dropped. fact_news keeps the 340 index; fact_price_daily keeps only its primary key.
 - The index state is checked with the last query of 910 before every measured configuration.
 
+## 2026-10-16 - Phase 10: Power BI model
+- Import mode. The data is small and some views take seconds (680: about 6 s); DirectQuery would run
+  them again on every slicer change.
+- Power BI reads only `mart.v_pbi_*` views (`sql/03_transform/8xx`), one grain per view, explicit
+  columns. Views 600-710 and dw tables can change as long as these output columns keep name and type.
+- Seven tables, single-direction filters from the one side:
+
+  | table | grain | relationships |
+  |---|---|---|
+  | Date | one calendar day in the window | marked as date table on full_date |
+  | Ticker | one ticker (current dim_ticker row) | key `ticker` |
+  | Ticker Session | one ticker in one session | Date (date_key), Ticker (ticker) |
+  | Sector Session | one session | Date (date_key) |
+  | Episode | one alert episode | Ticker (ticker), Date (start_date_key) |
+  | Episode News | one episode and one news item; episodes without news keep one row | Episode (episode_key) only |
+  | News | one news item and one ticker | Ticker (ticker); Date (publish_date_key, active); Date (reaction_date_key, inactive) |
+
+- Ticker joins on the durable code, not ticker_key: every mart view partitions by ticker. The Ticker
+  table is a one-row-per-ticker view of the SCD2 dimension.
+- Episode News relates to Episode only, so there is one filter path to it.
+- Episodes are filtered by their start date.
+- Report saved as .pbip if this Power BI Desktop supports it; otherwise .pbix kept out of git (it holds
+  the imported data). What is published is decided in Phase 12.
