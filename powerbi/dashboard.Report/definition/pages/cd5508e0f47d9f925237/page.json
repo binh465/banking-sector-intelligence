@@ -1,7 +1,7 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
   "name": "cd5508e0f47d9f925237",
-  "displayName": "Page 1",
+  "displayName": "Sector Overview",
   "displayOption": "FitToPage",
   "height": 1080,
   "width": 1920

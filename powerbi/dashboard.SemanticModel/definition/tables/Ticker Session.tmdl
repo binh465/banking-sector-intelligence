@@ -16,6 +16,7 @@ table 'Ticker Session'
 		formatString: 0.0000%;-0.0000%;0.0000%
 		lineageTag: 17aedf62-3fc8-43a1-881f-995a83f27a01
 
+	/// Ticker period return minus sector period return over the selection, each compounded from its own index. Not the sum or compounded product of the per-session excess_ret column in SQL. Blank when either side is blank.
 	measure 'Excess Period Return' =
 			
 			VAR T = [Ticker Period Return]
