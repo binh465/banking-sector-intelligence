@@ -1048,3 +1048,16 @@ Checks, each against its source and by a second route:
   same as fact_news (reaction after the window end).
 - 644 counts (episode, news item) pairs, not distinct articles: an item can fall in the windows of
   two nearby episodes of the same ticker.
+
+### 10.3 Power BI model (`powerbi/dashboard.pbip`)
+- Power BI Desktop 2.159.883.0 (October 2026), saved as a Power BI Project (TMDL). `.pbi/cache.abf`
+  (the imported data) and `.pbi/localSettings.json` are in `.gitignore`.
+- Import from `<machine>\SQLEXPRESS`, the seven `v_pbi_*` views only, no Power Query steps besides
+  renaming. Auto date/time off (`__PBI_TimeIntelligenceEnabled = 0`), relationship autodetect off.
+- Row counts after load equal the views: Date 730, Ticker 10, Sector Session 497, Episode 96, Ticker
+  Session 4,970, Episode News 645, News 6,849.
+- Nine relationships in `relationships.tmdl`, many-to-one from the detail table to the general one,
+  single direction; News.reaction_date_key to Date is inactive.
+- Date marked as date table on full_date. Key columns on the many side and technical sequence columns
+  hidden; every numeric column set to summarizeBy none (aggregations come from explicit measures);
+  url columns as Web URL. Checked by reading the TMDL files.

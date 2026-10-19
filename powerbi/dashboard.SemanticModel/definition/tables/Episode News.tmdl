@@ -1,0 +1,127 @@
+table 'Episode News'
+	lineageTag: 0e5619c5-9bcf-4e4f-acec-12b62a63ba17
+
+	column episode_key
+		dataType: string
+		isHidden
+		lineageTag: 0aee4c4c-138e-4720-8645-5271cac0d62d
+		summarizeBy: none
+		sourceColumn: episode_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column article_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 7933dc0e-814e-4943-b00b-fab4c0ce438b
+		summarizeBy: none
+		sourceColumn: article_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column match_tier
+		dataType: int64
+		formatString: 0
+		lineageTag: 58f60f08-9692-4833-8923-efece8c40bb0
+		summarizeBy: none
+		sourceColumn: match_tier
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column item_type
+		dataType: string
+		lineageTag: ea39905e-cf3e-4c31-bf6f-f195d75a4232
+		summarizeBy: none
+		sourceColumn: item_type
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column title
+		dataType: string
+		lineageTag: 96536de8-fb83-48c3-b34a-a5c1eb372209
+		summarizeBy: none
+		sourceColumn: title
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column url
+		dataType: string
+		lineageTag: 82dee63d-1322-4bdc-b317-0fef80e1f06d
+		dataCategory: WebUrl
+		summarizeBy: none
+		sourceColumn: url
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column publish_time_local
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 5fc9c85c-1fee-480b-aabe-2228b8e959c9
+		summarizeBy: none
+		sourceColumn: publish_time_local
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column reaction_seq
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: cf6d9eb8-2927-4eb5-8633-390db001dd70
+		summarizeBy: none
+		sourceColumn: reaction_seq
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column offset_from_start
+		dataType: int64
+		formatString: 0
+		lineageTag: 4411173b-b088-4301-855f-41cdd92374f8
+		summarizeBy: none
+		sourceColumn: offset_from_start
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column position
+		dataType: string
+		lineageTag: 5807ee50-3863-4afa-bfb0-88074c54236f
+		summarizeBy: none
+		sourceColumn: position
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Episode News' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("<machine>\SQLEXPRESS", "BankingSectorIntelligence"),
+				    mart_v_pbi_episode_news = Source{[Schema="mart",Item="v_pbi_episode_news"]}[Data]
+				in
+				    mart_v_pbi_episode_news
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -17,3 +17,7 @@ __pycache__/
 Thumbs.db
 desktop.ini
 .vscode/
+
+# Power BI project: imported data cache and per-user settings stay local
+powerbi/**/.pbi/cache.abf
+powerbi/**/.pbi/localSettings.json

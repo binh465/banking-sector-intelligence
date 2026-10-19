@@ -1,0 +1,129 @@
+table News
+	lineageTag: e19634a2-02fe-44f3-8dc6-5f82acea9400
+
+	column article_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 7d90c57f-eeeb-4e64-a2f4-7aedc44f0e2f
+		summarizeBy: none
+		sourceColumn: article_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column ticker
+		dataType: string
+		isHidden
+		lineageTag: 466c3637-db82-4e8e-b6de-86f236aa1408
+		summarizeBy: none
+		sourceColumn: ticker
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column publish_date_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 9042b383-1d70-44e2-a9cf-9d0fde3b65b7
+		summarizeBy: none
+		sourceColumn: publish_date_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column reaction_date_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 9856c736-a2e5-4fe8-bfcd-e94f2032e707
+		summarizeBy: none
+		sourceColumn: reaction_date_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column match_tier
+		dataType: int64
+		formatString: 0
+		lineageTag: 4fe0ee44-126b-4795-83bf-83b0c8f05d22
+		summarizeBy: none
+		sourceColumn: match_tier
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column is_sector_news
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: d40b2cbe-baa7-4774-97a1-8d7a392637df
+		summarizeBy: none
+		sourceColumn: is_sector_news
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column item_type
+		dataType: string
+		lineageTag: 1a0a1026-b4cd-48f6-9914-691585f4c92c
+		summarizeBy: none
+		sourceColumn: item_type
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column title
+		dataType: string
+		lineageTag: 29dc9bd7-5a59-4c33-8e2c-ef76ef0be719
+		summarizeBy: none
+		sourceColumn: title
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column url
+		dataType: string
+		lineageTag: 5eed7f20-ee92-4a10-a08f-8f49bcb294da
+		dataCategory: WebUrl
+		summarizeBy: none
+		sourceColumn: url
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column publish_time_local
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: e317bffa-1155-4def-b2c5-6800a4a6a68b
+		summarizeBy: none
+		sourceColumn: publish_time_local
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition News = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("<machine>\SQLEXPRESS", "BankingSectorIntelligence"),
+				    mart_v_pbi_news = Source{[Schema="mart",Item="v_pbi_news"]}[Data]
+				in
+				    mart_v_pbi_news
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,67 @@
+table 'Sector Session'
+	lineageTag: 123a2be1-d468-4679-80b6-adb6e9573516
+
+	column date_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: cfaefd24-c081-485b-8231-f26988868c24
+		summarizeBy: none
+		sourceColumn: date_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column session_seq
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 95db0099-291e-40ff-b2d0-39b35b5db463
+		summarizeBy: none
+		sourceColumn: session_seq
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column sector_ret
+		dataType: double
+		lineageTag: a343d200-1611-4f8c-9356-e6887714a09e
+		summarizeBy: none
+		sourceColumn: sector_ret
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column sector_index
+		dataType: double
+		lineageTag: b6a058de-0666-4f6f-932b-be0aeef8d250
+		summarizeBy: none
+		sourceColumn: sector_index
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'Sector Session' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("<machine>\SQLEXPRESS", "BankingSectorIntelligence"),
+				    mart_v_pbi_sector_session = Source{[Schema="mart",Item="v_pbi_sector_session"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(mart_v_pbi_sector_session,{{"session_seq", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

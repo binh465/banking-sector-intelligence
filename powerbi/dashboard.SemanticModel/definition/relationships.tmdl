@@ -1,0 +1,37 @@
+relationship d00502e2-f4f8-d0e5-8ae8-08b22cf8717d
+	fromColumn: 'Ticker Session'.date_key
+	toColumn: Date.date_key
+
+relationship 0940ed3f-9c3a-042c-7f18-78692ab7e768
+	fromColumn: 'Sector Session'.date_key
+	toColumn: Date.date_key
+
+relationship 6ef26ab6-74be-6852-b109-608045cf3973
+	fromColumn: 'Ticker Session'.ticker
+	toColumn: Ticker.ticker
+
+relationship ca704984-0660-74b6-c5ce-2d3377d4bd45
+	fromColumn: Episode.ticker
+	toColumn: Ticker.ticker
+
+relationship 26f79668-f535-729c-7749-0c49b9015ff8
+	fromColumn: Episode.start_date_key
+	toColumn: Date.date_key
+
+relationship 53827d3f-6125-5ed2-e807-3530afc4c8ff
+	fromColumn: 'Episode News'.episode_key
+	toColumn: Episode.episode_key
+
+relationship e9d63752-2e9a-8073-80cc-4b3f139deac9
+	fromColumn: News.ticker
+	toColumn: Ticker.ticker
+
+relationship 05503ab3-e3e6-63a6-9ac0-f9345f814792
+	fromColumn: News.publish_date_key
+	toColumn: Date.date_key
+
+relationship fe54c00a-ec0d-45a3-8208-6d91a4f34ab4
+	isActive: false
+	fromColumn: News.reaction_date_key
+	toColumn: Date.date_key
+

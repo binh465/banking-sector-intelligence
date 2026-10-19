@@ -1,0 +1,183 @@
+table 'Ticker Session'
+	lineageTag: f51337e6-966d-4722-9fc5-8d23b800c52d
+
+	column ticker
+		dataType: string
+		isHidden
+		lineageTag: 1ca49a43-fcd9-4716-819e-dd8c53a3e8cb
+		summarizeBy: none
+		sourceColumn: ticker
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column date_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 200aa59b-00c1-406a-8e53-1717855f7a0f
+		summarizeBy: none
+		sourceColumn: date_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column session_seq
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 5cf6ca79-52cf-47e0-b001-e325acbd9bfd
+		summarizeBy: none
+		sourceColumn: session_seq
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column close_price
+		dataType: double
+		lineageTag: cd42e2bb-169a-40bf-818f-eceb49520a5d
+		summarizeBy: none
+		sourceColumn: close_price
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ret
+		dataType: double
+		lineageTag: 06f1367e-7af1-47c7-808d-6af8cf577e7f
+		summarizeBy: none
+		sourceColumn: ret
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column sector_ret
+		dataType: double
+		lineageTag: 3a0d0aad-2e86-46cb-aa3e-45aaff8ae10a
+		summarizeBy: none
+		sourceColumn: sector_ret
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column excess_ret
+		dataType: double
+		lineageTag: 498c4634-e44c-4f2b-9157-5e50d5db2c9b
+		summarizeBy: none
+		sourceColumn: excess_ret
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ticker_index
+		dataType: double
+		lineageTag: 2de10a9c-1d06-41b7-a69f-dea2624f9e55
+		summarizeBy: none
+		sourceColumn: ticker_index
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column rs
+		dataType: double
+		lineageTag: 893c6bfc-2fb8-4a43-918c-52b472eef0fe
+		summarizeBy: none
+		sourceColumn: rs
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column corr_60
+		dataType: double
+		lineageTag: 80ff024e-e523-4336-a9dd-62b5fa4e8834
+		summarizeBy: none
+		sourceColumn: corr_60
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column z
+		dataType: double
+		lineageTag: 2f551cab-b99b-4d08-b626-0cba085fdd3c
+		summarizeBy: none
+		sourceColumn: z
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column out_3
+		dataType: int64
+		formatString: 0
+		lineageTag: 56862416-55b9-47ec-9892-d840bf10fe53
+		summarizeBy: none
+		sourceColumn: out_3
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column episode_key
+		dataType: string
+		isHidden
+		lineageTag: 1d16a50b-583c-4ff4-9caf-a5cb56c472e8
+		summarizeBy: none
+		sourceColumn: episode_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_alert
+		dataType: int64
+		formatString: 0
+		lineageTag: 2cc0e2e3-8f0b-4745-998f-08ec84b750ec
+		summarizeBy: none
+		sourceColumn: is_alert
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	partition 'Ticker Session' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("<machine>\SQLEXPRESS", "BankingSectorIntelligence"),
+				    mart_v_pbi_ticker_session = Source{[Schema="mart",Item="v_pbi_ticker_session"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(mart_v_pbi_ticker_session,{{"session_seq", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

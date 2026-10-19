@@ -1,0 +1,25 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-GB
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_QueryOrder = ["Date","Episode","Episode News","News","Sector Session","Ticker","Ticker Session"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table Date
+ref table Episode
+ref table 'Episode News'
+ref table News
+ref table 'Sector Session'
+ref table Ticker
+ref table 'Ticker Session'
+
+ref cultureInfo en-US
+

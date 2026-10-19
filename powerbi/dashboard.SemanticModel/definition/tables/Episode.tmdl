@@ -1,0 +1,167 @@
+table Episode
+	lineageTag: fefc3b89-7c4e-4606-b1dc-0bc5d97a7fd7
+
+	column episode_key
+		dataType: string
+		lineageTag: 98440e8c-814c-4b42-bea3-686d1e03babc
+		summarizeBy: none
+		sourceColumn: episode_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ticker
+		dataType: string
+		isHidden
+		lineageTag: 9b3820cc-ddb1-4414-ab01-b22e7f70274f
+		summarizeBy: none
+		sourceColumn: ticker
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column direction
+		dataType: int64
+		formatString: 0
+		lineageTag: 61df13c1-19dd-4dcb-9e84-3a0903b35490
+		summarizeBy: none
+		sourceColumn: direction
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column start_seq
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: a7a7d5dc-35b0-4dfd-b032-ce316867059d
+		summarizeBy: none
+		sourceColumn: start_seq
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column end_seq
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: a042ff6a-64bc-4e0b-a19d-687bbe4f16b4
+		summarizeBy: none
+		sourceColumn: end_seq
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column start_date_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 70a5da39-5320-47c1-ae62-e04b329b3a36
+		summarizeBy: none
+		sourceColumn: start_date_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column end_date_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 891b2dfb-4d8f-496c-a76e-28d940a25881
+		summarizeBy: none
+		sourceColumn: end_date_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column sessions
+		dataType: int64
+		formatString: 0
+		lineageTag: ab985ecf-b805-4c73-8700-b9bbee7c3042
+		summarizeBy: none
+		sourceColumn: sessions
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column peak_z
+		dataType: double
+		lineageTag: c19977c8-290e-4f0a-82fd-e33e2946e16f
+		summarizeBy: none
+		sourceColumn: peak_z
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column sum_excess_ret
+		dataType: double
+		lineageTag: 591d1ac6-92cf-498d-9fe6-99213f0fb486
+		summarizeBy: none
+		sourceColumn: sum_excess_ret
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column news_before
+		dataType: int64
+		formatString: 0
+		lineageTag: bb4dac92-fcf2-491c-8dc6-95e6f1349cd8
+		summarizeBy: none
+		sourceColumn: news_before
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column news_during
+		dataType: int64
+		formatString: 0
+		lineageTag: dea918f9-0e06-42d8-adab-c251f0a0b773
+		summarizeBy: none
+		sourceColumn: news_during
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column news_after
+		dataType: int64
+		formatString: 0
+		lineageTag: ab8bced5-dfb4-443c-bc6d-d11adeb54fcc
+		summarizeBy: none
+		sourceColumn: news_after
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	partition Episode = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("<machine>\SQLEXPRESS", "BankingSectorIntelligence"),
+				    mart_v_pbi_episode = Source{[Schema="mart",Item="v_pbi_episode"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(mart_v_pbi_episode,{{"start_seq", Int64.Type}, {"end_seq", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

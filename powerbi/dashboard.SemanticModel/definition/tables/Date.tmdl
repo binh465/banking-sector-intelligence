@@ -1,0 +1,158 @@
+table Date
+	lineageTag: 0f896410-9cd4-4129-a410-f2cb5f2f0e8c
+	dataCategory: Time
+
+	column date_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 4314d2a8-e9c2-4393-8593-67481546fec4
+		summarizeBy: none
+		sourceColumn: date_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column full_date
+		dataType: dateTime
+		isKey
+		formatString: Long Date
+		lineageTag: cbab9bc8-bd53-48fb-8973-44778691abd7
+		summarizeBy: none
+		sourceColumn: full_date
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column year
+		dataType: int64
+		formatString: 0
+		lineageTag: e15689f9-fc77-4a8b-a833-b9b3feaf9a57
+		summarizeBy: none
+		sourceColumn: year
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column quarter
+		dataType: int64
+		formatString: 0
+		lineageTag: 0f0bd05b-7461-4f2a-b390-07866f715a42
+		summarizeBy: none
+		sourceColumn: quarter
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column month
+		dataType: int64
+		formatString: 0
+		lineageTag: e6c2c32c-10e0-43ea-baca-d0a89a31b59f
+		summarizeBy: none
+		sourceColumn: month
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column month_start
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 0fa0410f-1e49-4031-b3bf-450d3a0a1fe0
+		summarizeBy: none
+		sourceColumn: month_start
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column day_of_month
+		dataType: int64
+		formatString: 0
+		lineageTag: e0dcb63d-a638-41f9-9457-40e5c3fb35ac
+		summarizeBy: none
+		sourceColumn: day_of_month
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column iso_week
+		dataType: int64
+		formatString: 0
+		lineageTag: e0b8c81f-c650-4786-a1ef-680f1615f6af
+		summarizeBy: none
+		sourceColumn: iso_week
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column day_of_week
+		dataType: int64
+		formatString: 0
+		lineageTag: 37137d8e-92f6-42c9-8bda-3302950220d9
+		summarizeBy: none
+		sourceColumn: day_of_week
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	column is_weekend
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 5e04ba6a-a5c5-429f-818a-056ed54a736d
+		summarizeBy: none
+		sourceColumn: is_weekend
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_trading_day
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: fc08847c-fe21-4591-a5c0-d338ae692249
+		summarizeBy: none
+		sourceColumn: is_trading_day
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column session_seq
+		dataType: int64
+		formatString: 0
+		lineageTag: a8dec94e-2774-4ce9-bd49-090e8ed006f5
+		summarizeBy: none
+		sourceColumn: session_seq
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	partition Date = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("<machine>\SQLEXPRESS", "BankingSectorIntelligence"),
+				    mart_v_pbi_date = Source{[Schema="mart",Item="v_pbi_date"]}[Data],
+				    #"Changed Type" = Table.TransformColumnTypes(mart_v_pbi_date,{{"session_seq", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

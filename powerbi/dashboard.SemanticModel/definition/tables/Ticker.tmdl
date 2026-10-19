@@ -1,0 +1,48 @@
+table Ticker
+	lineageTag: 3b89a50b-4762-4428-9998-35f746d37a9c
+
+	column ticker
+		dataType: string
+		lineageTag: 6fac3f5a-94e6-4e9e-8b94-637b2cf682dc
+		summarizeBy: none
+		sourceColumn: ticker
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column full_name
+		dataType: string
+		lineageTag: 5eaa0754-868d-4d2a-a62a-bbabe23ac471
+		summarizeBy: none
+		sourceColumn: full_name
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column exchange
+		dataType: string
+		lineageTag: 7b74112c-cc79-4581-8dd9-8fd2a34bf93f
+		summarizeBy: none
+		sourceColumn: exchange
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Ticker = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("<machine>\SQLEXPRESS", "BankingSectorIntelligence"),
+				    mart_v_pbi_ticker = Source{[Schema="mart",Item="v_pbi_ticker"]}[Data]
+				in
+				    mart_v_pbi_ticker
+
+	changedProperty = IsHidden
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

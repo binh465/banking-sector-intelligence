@@ -7,6 +7,7 @@ SELECT f.article_key,
 		f.reaction_date_key,
 		f.match_tier,
 		f.is_sector_news,
+		a.item_type,
 		a.title,
 		a.url,
 		a.publish_time_local
