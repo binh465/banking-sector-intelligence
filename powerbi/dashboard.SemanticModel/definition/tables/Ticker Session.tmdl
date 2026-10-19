@@ -1,6 +1,39 @@
 table 'Ticker Session'
 	lineageTag: f51337e6-966d-4722-9fc5-8d23b800c52d
 
+	measure 'Ticker Period Return' =
+			
+			VAR FirstSeq = MIN('Ticker Session'[session_seq])
+			VAR LastSeq = MAX('Ticker Session'[session_seq])
+			VAR BaseSeq = MAX(FirstSeq - 1,1) -- session 1 has no return and index 100, so it is its own base
+			
+			VAR EndIndex = CALCULATE(MAX('Ticker Session'[ticker_index]),'Ticker Session'[session_seq] = LastSeq)
+			VAR BaseIndex = CALCULATE(MAX('Ticker Session'[ticker_index]), REMOVEFILTERS('Date'), 'Ticker Session'[session_seq] = BaseSeq)
+			
+			RETURN
+			    IF ( HASONEVALUE ( Ticker[ticker] ) && NOT ISBLANK ( LastSeq ),
+			         DIVIDE ( EndIndex, BaseIndex ) - 1 )
+		formatString: 0.0000%;-0.0000%;0.0000%
+		lineageTag: 17aedf62-3fc8-43a1-881f-995a83f27a01
+
+	measure 'Excess Period Return' =
+			
+			VAR T = [Ticker Period Return]
+			VAR S = [Sector Period Return]
+			RETURN
+			    IF ( NOT ISBLANK ( T ) && NOT ISBLANK ( S ), T - S )
+		formatString: 0.0000%;-0.0000%;0.0000%
+		lineageTag: 28cc2eee-484b-4b75-aff4-2faa19652cbe
+
+	measure 'Return Rank' =
+			
+			IF (
+			    HASONEVALUE ( Ticker[ticker] ) && NOT ISBLANK ( [Ticker Period Return] ),
+			    RANKX ( ALL ( Ticker[ticker] ), [Ticker Period Return], , DESC, DENSE )
+			)
+		formatString: 0
+		lineageTag: 8e663328-c915-4067-abf5-ecb4effb2266
+
 	column ticker
 		dataType: string
 		isHidden

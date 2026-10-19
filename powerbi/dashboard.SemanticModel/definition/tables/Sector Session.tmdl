@@ -1,6 +1,25 @@
 table 'Sector Session'
 	lineageTag: 123a2be1-d468-4679-80b6-adb6e9573516
 
+	measure 'Sector Period Return' = ```
+			
+			VAR FirstSeq = MIN('Sector Session'[session_seq])
+			VAR LastSeq = MAX('Sector Session'[session_seq])
+			VAR BaseSeq = MAX(FirstSeq - 1, 1) -- session 1 has no return and index 100, so it is its own base
+			
+			VAR EndIndex = CALCULATE(MAX('Sector Session'[sector_index]), 'Sector Session'[session_seq] = LastSeq)
+			
+			VAR BaseIndex = CALCULATE(MAX('Sector Session'[sector_index]), REMOVEFILTERS('Date'), 'Sector Session'[session_seq] = BaseSeq)
+			
+			RETURN 
+			    IF(
+			        NOT ISBLANK(LastSeq),
+			        DIVIDE(EndIndex, BaseIndex) - 1
+			    )
+			```
+		formatString: 0.0000%;-0.0000%;0.0000%
+		lineageTag: 15d00bf5-08fc-4658-9d6e-98ab57ececcd
+
 	column date_key
 		dataType: int64
 		isHidden

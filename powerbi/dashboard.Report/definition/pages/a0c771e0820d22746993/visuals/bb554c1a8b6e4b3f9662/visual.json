@@ -1,0 +1,168 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "bb554c1a8b6e4b3f9662",
+  "position": {
+    "x": 390,
+    "y": 133,
+    "z": 0,
+    "height": 596,
+    "width": 722,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Ticker"
+                    }
+                  },
+                  "Property": "ticker"
+                }
+              },
+              "queryRef": "Ticker.ticker",
+              "nativeQueryRef": "ticker"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Ticker Session"
+                    }
+                  },
+                  "Property": "Excess Period Return"
+                }
+              },
+              "queryRef": "Sector Session.Excess Period Return",
+              "nativeQueryRef": "Excess Period Return"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Ticker Session"
+                    }
+                  },
+                  "Property": "Return Rank"
+                }
+              },
+              "queryRef": "Sector Session.Return Rank",
+              "nativeQueryRef": "Return Rank"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Sector Session"
+                    }
+                  },
+                  "Property": "Sector Period Return"
+                }
+              },
+              "queryRef": "Sector Session.Sector Period Return",
+              "nativeQueryRef": "Sector Period Return"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Ticker Session"
+                    }
+                  },
+                  "Property": "Ticker Period Return"
+                }
+              },
+              "queryRef": "Ticker Session.Ticker Period Return",
+              "nativeQueryRef": "Ticker Period Return"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "94460c58bda5c00781c1",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Ticker"
+              }
+            },
+            "Property": "ticker"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "2bed11b4f169e53ac0ab",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Ticker Session"
+              }
+            },
+            "Property": "Excess Period Return"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "323ba8b7b38c28b65de5",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Ticker Session"
+              }
+            },
+            "Property": "Return Rank"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "b6b4fe14dc31add40774",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Sector Session"
+              }
+            },
+            "Property": "Sector Period Return"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "23b61d124bd820b75c61",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Ticker Session"
+              }
+            },
+            "Property": "Ticker Period Return"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  }
+}
