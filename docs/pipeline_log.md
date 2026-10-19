@@ -1061,3 +1061,35 @@ Checks, each against its source and by a second route:
 - Date marked as date table on full_date. Key columns on the many side and technical sequence columns
   hidden; every numeric column set to summarizeBy none (aggregations come from explicit measures);
   url columns as Web URL. Checked by reading the TMDL files.
+
+### 10.4 Measures (DAX)
+DAX only does what depends on the viewer's selection; returns, indexes, z and correlation come from SQL.
+
+| measure | table | definition |
+|---|---|---|
+| Ticker Period Return | Ticker Session | ticker_index at the last session in the selection / ticker_index at the session before the first one - 1; session 1 is its own base (no return, index 100); blank on totals and when the selection has no session |
+| Sector Period Return | Sector Session | same on sector_index; not filtered by ticker |
+| Excess Period Return | Ticker Session | ticker minus sector period return, blank if either is blank |
+| Return Rank | Ticker Session | RANKX over ALL(Ticker[ticker]), DENSE, blank when the ticker return is blank |
+| Ticker Return PM | Ticker Session | Ticker Period Return with DATEADD(-1, MONTH); the same dates one month back, a full month only when the selection ends on a month end |
+| Latest z, Latest RS, Latest corr_60 | Ticker Session | value at the last session in the selection |
+| Alert Sessions | Ticker Session | SUM(is_alert) |
+| Episodes, Episodes with News | Episode | COUNTROWS; episodes with news_before + news_during + news_after > 0 |
+| Distinct Articles near Episodes | Episode News | DISTINCTCOUNT(article_key) without the blank of the episode that has no news |
+| News Items, News Items by Reaction Session | News | rows with is_sector_news = FALSE, by publish date; the second through the inactive reaction_date_key relationship (USERELATIONSHIP) |
+
+Checks (page "QA - measure checks"):
+- Ticker Period Return: full window equals ticker_index / 100 - 1 at the last session for all 10 tickers;
+  2025-01-01..2025-06-30 equals EXP(SUM(LOG(1 + ret))) - 1 over the range (4 decimals).
+- Sector, excess and rank for 2025-01-01..2025-06-30 equal the SQL computation (sector 9.1583%).
+- 2025-01-04..2025-01-05 (no session): every measure blank. This caught two errors on the way:
+  BLANK minus a number is a number in DAX (excess return showed minus the sector return on totals,
+  period return showed -100%), and RANKX ranks all-blank values as 1.
+- Ticker Return PM, VCB by month: each month equals the previous month's period return; monthly
+  returns equal SQL by month; September 2024 (26-30 only) has no previous month.
+- Latest z / RS / corr_60 at 2025-06-30 equal session 188 in SQL; ending on Sunday 2025-06-29 gives
+  Friday 2025-06-27 (session 187). corr_60 starts at session 61, z at session 62.
+- Full window: Alert Sessions 100, Episodes 96, Episodes with News 95, Distinct Articles near
+  Episodes 601 (= COUNT(DISTINCT article_key) in v_pbi_episode_news), News Items 5,145, News Items
+  by Reaction Session 5,135.
+- Monday 2025-06-30: 8 news items by publish date, 21 by reaction session, both equal to SQL.

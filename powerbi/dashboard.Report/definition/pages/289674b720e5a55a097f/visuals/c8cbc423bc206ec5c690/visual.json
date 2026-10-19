@@ -1,0 +1,196 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "c8cbc423bc206ec5c690",
+  "position": {
+    "x": 10,
+    "y": 0,
+    "z": 0,
+    "height": 161.25,
+    "width": 968.75,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Episode"
+                    }
+                  },
+                  "Property": "Episodes"
+                }
+              },
+              "queryRef": "Episode.Episodes",
+              "nativeQueryRef": "Episodes"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Ticker Session"
+                    }
+                  },
+                  "Property": "Alert Sessions"
+                }
+              },
+              "queryRef": "Ticker Session.Alert Sessions",
+              "nativeQueryRef": "Alert Sessions"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Episode"
+                    }
+                  },
+                  "Property": "Episodes with News"
+                }
+              },
+              "queryRef": "Episode.Episodes with News",
+              "nativeQueryRef": "Episodes with News"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Episode News"
+                    }
+                  },
+                  "Property": "Distinct Articles near Episodes"
+                }
+              },
+              "queryRef": "Episode News.Direct Articles near Episodes",
+              "nativeQueryRef": "Distinct Articles near Episodes"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "News"
+                    }
+                  },
+                  "Property": "News Items"
+                }
+              },
+              "queryRef": "News.News Items",
+              "nativeQueryRef": "News Items"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "News"
+                    }
+                  },
+                  "Property": "News Items by Reaction Session"
+                }
+              },
+              "queryRef": "News.News Items by Reaction Session",
+              "nativeQueryRef": "News Items by Reaction Session"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "445810ae8cb80d2a8966",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Episode"
+              }
+            },
+            "Property": "Episodes"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "0eb26c26fa83f9415372",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Ticker Session"
+              }
+            },
+            "Property": "Alert Sessions"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "7be6a62b95bb1ba5e411",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Episode"
+              }
+            },
+            "Property": "Episodes with News"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "1a21b6fe2324412e8c35",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Episode News"
+              }
+            },
+            "Property": "Distinct Articles near Episodes"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "54c293560131cbcea0c9",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "News"
+              }
+            },
+            "Property": "News Items"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "edbd01491908270621e4",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "News"
+              }
+            },
+            "Property": "News Items by Reaction Session"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  }
+}

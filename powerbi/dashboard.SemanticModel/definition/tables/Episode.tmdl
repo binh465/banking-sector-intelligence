@@ -1,6 +1,21 @@
 table Episode
 	lineageTag: fefc3b89-7c4e-4606-b1dc-0bc5d97a7fd7
 
+	measure Episodes = COUNTROWS(Episode)
+		formatString: 0
+		lineageTag: 870e231f-f546-4544-9b5b-350d9e598e29
+
+	measure 'Episodes with News' =
+			
+			COUNTROWS(
+			    FILTER(
+			        Episode,
+			        Episode[news_before] + Episode[news_during] + Episode[news_after] > 0
+			    )
+			)
+		formatString: 0
+		lineageTag: b4bf1e6e-9fe6-4cda-99ae-ca2fabc4b8a6
+
 	column episode_key
 		dataType: string
 		lineageTag: 98440e8c-814c-4b42-bea3-686d1e03babc

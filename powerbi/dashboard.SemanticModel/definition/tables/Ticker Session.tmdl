@@ -34,6 +34,54 @@ table 'Ticker Session'
 		formatString: 0
 		lineageTag: 8e663328-c915-4067-abf5-ecb4effb2266
 
+	measure 'Latest z' =
+			
+			VAR LastSeq = MAX('Ticker Session'[session_seq])
+			RETURN
+			    IF(
+			        HASONEVALUE(Ticker[ticker]),
+			        CALCULATE(MAX('Ticker Session'[z]), 'Ticker Session'[session_seq] = LastSeq)
+			    )
+		formatString: 0.00
+		lineageTag: dca44457-b613-4265-adcd-81c6da06f0a4
+
+	measure 'Latest corr_60' = ```
+			
+			VAR LastSeq = MAX('Ticker Session'[session_seq])
+			RETURN 
+			    IF(
+			        HASONEVALUE(Ticker[ticker]),
+			        CALCULATE(MAX('Ticker Session'[corr_60]), 'Ticker Session'[session_seq] = LastSeq)
+			    )
+			```
+		formatString: 0.000
+		lineageTag: 45ca9522-593f-4e6b-adb9-c61c9df27b62
+
+	measure 'Latest RS' = ```
+			
+			VAR LastSeq = MAX('Ticker Session'[session_seq])
+			RETURN 
+			    IF(
+			        HASONEVALUE(Ticker[ticker]),
+			        CALCULATE(MAX('Ticker Session'[rs]), 'Ticker Session'[session_seq] = LastSeq)
+			    )
+			```
+		formatString: 0.00
+		lineageTag: 8b5b3bba-71ff-4674-8dbe-d72450b6f64c
+
+	/// Return over the same dates shifted back one month; equals the full previous month only when the selection ends on a month end.
+	measure 'Ticker Return PM' =
+			
+			CALCULATE ( [Ticker Period Return], DATEADD ( 'Date'[full_date], -1, MONTH ) )
+		formatString: 0.0000%;-0.0000%;0.0000%
+		lineageTag: 6e33953c-448a-4b57-94e5-4c2697a655ec
+
+	measure 'Alert Sessions' =
+			
+			SUM('Ticker Session'[is_alert])
+		formatString: 0
+		lineageTag: 9d86fde0-0349-4272-b586-46f13c3747e0
+
 	column ticker
 		dataType: string
 		isHidden

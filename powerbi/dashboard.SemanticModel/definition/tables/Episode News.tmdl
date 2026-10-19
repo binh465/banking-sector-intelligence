@@ -1,6 +1,18 @@
 table 'Episode News'
 	lineageTag: 0e5619c5-9bcf-4e4f-acec-12b62a63ba17
 
+	measure 'Distinct Articles near Episodes' =
+			
+			CALCULATE (
+			    DISTINCTCOUNTNOBLANK ( 'Episode News'[article_key] ),
+			    FILTER (
+			        'Episode News',
+			        NOT ISBLANK ( 'Episode News'[article_key] )
+			    )
+			)
+		formatString: 0
+		lineageTag: ee63b019-835e-42ef-ac17-e52cd7e80230
+
 	column episode_key
 		dataType: string
 		isHidden

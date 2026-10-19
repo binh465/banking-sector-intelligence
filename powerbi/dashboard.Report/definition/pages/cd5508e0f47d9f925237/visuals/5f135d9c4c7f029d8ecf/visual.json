@@ -1,0 +1,140 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "5f135d9c4c7f029d8ecf",
+  "position": {
+    "x": 632.5,
+    "y": 20,
+    "z": 1,
+    "height": 456.25,
+    "width": 393.75,
+    "tabOrder": 1
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Ticker"
+                    }
+                  },
+                  "Property": "ticker"
+                }
+              },
+              "queryRef": "Ticker.ticker",
+              "nativeQueryRef": "ticker"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Ticker Session"
+                    }
+                  },
+                  "Property": "Latest z"
+                }
+              },
+              "queryRef": "Ticker Session.Latest z",
+              "nativeQueryRef": "Latest z"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Ticker Session"
+                    }
+                  },
+                  "Property": "Latest RS"
+                }
+              },
+              "queryRef": "Ticker Session.Latest RS",
+              "nativeQueryRef": "Latest RS"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Ticker Session"
+                    }
+                  },
+                  "Property": "Latest corr_60"
+                }
+              },
+              "queryRef": "Ticker Session.Latest corr_60",
+              "nativeQueryRef": "Latest corr_60"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "ffb2c5f4121f49c4226c",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Ticker"
+              }
+            },
+            "Property": "ticker"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "69c849fc12b1e6846a55",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Ticker Session"
+              }
+            },
+            "Property": "Latest z"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "228b15040d56e864c6c3",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Ticker Session"
+              }
+            },
+            "Property": "Latest RS"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "1061b54887ebdb5d682f",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Ticker Session"
+              }
+            },
+            "Property": "Latest corr_60"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  }
+}

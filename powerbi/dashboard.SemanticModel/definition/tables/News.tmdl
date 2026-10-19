@@ -1,6 +1,27 @@
 table News
 	lineageTag: e19634a2-02fe-44f3-8dc6-5f82acea9400
 
+	measure 'News Items' =
+			
+			CALCULATE(
+			    COUNTROWS(News),
+			    News[is_sector_news] = FALSE()
+			)
+		formatString: 0
+		lineageTag: 7ace83ba-4425-414c-a917-b38df3edb60c
+
+	measure 'News Items by Reaction Session' =
+			
+			CALCULATE (
+			    [News Items],
+			    USERELATIONSHIP (
+			        News[reaction_date_key],
+			        'Date'[date_key]
+			    )
+			)
+		formatString: 0
+		lineageTag: b5ab31f4-98c0-4784-b03e-088fa149f44f
+
 	column article_key
 		dataType: int64
 		isHidden
