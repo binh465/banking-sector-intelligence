@@ -4,5 +4,31 @@
   "displayName": "Sector Overview",
   "displayOption": "FitToPage",
   "height": 1080,
-  "width": 1920
+  "width": 1920,
+  "objects": {
+    "background": [
+      {
+        "properties": {
+          "color": {
+            "solid": {
+              "color": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'#F7F9FC'"
+                  }
+                }
+              }
+            }
+          },
+          "transparency": {
+            "expr": {
+              "Literal": {
+                "Value": "0D"
+              }
+            }
+          }
+        }
+      }
+    ]
+  }
 }

@@ -4,10 +4,10 @@
   "position": {
     "x": 907.5,
     "y": 415,
-    "z": 5,
+    "z": 5000,
     "height": 456.25,
     "width": 393.75,
-    "tabOrder": 5
+    "tabOrder": 5000
   },
   "visual": {
     "visualType": "tableEx",
@@ -76,65 +76,5 @@
       }
     },
     "drillFilterOtherVisuals": true
-  },
-  "filterConfig": {
-    "filters": [
-      {
-        "name": "25f63840cf4580afda9c",
-        "field": {
-          "Column": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Ticker"
-              }
-            },
-            "Property": "ticker"
-          }
-        },
-        "type": "Categorical"
-      },
-      {
-        "name": "6af74b8573b97e20b4ed",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Ticker Session"
-              }
-            },
-            "Property": "Latest z"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "65aa2bdb4506a664cba3",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Ticker Session"
-              }
-            },
-            "Property": "Latest RS"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "bafd68ea9a67c6430c38",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Ticker Session"
-              }
-            },
-            "Property": "Latest corr_60"
-          }
-        },
-        "type": "Advanced"
-      }
-    ]
   }
 }

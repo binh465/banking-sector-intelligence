@@ -462,3 +462,18 @@ queries 7 and 8 (results in `pipeline_log.md`, 2.4).
 - Episodes are filtered by their start date.
 - Report saved as .pbip if this Power BI Desktop supports it; otherwise .pbix kept out of git (it holds
   the imported data). What is published is decided in Phase 12.
+
+## 2026-10-20 - Phase 10: calculated table Index Series for the index chart
+- A Power BI line chart allows a legend only with one measure on the Y axis. To draw the sector index
+  and the selected tickers' indexes on one chart, the model has a calculated table `Index Series`
+  (one row "Sector Index" plus one row per ticker, built from Ticker) with no relationships. The
+  measure `Index Chart Value` returns [Sector Index] for "Sector Index" and otherwise [Ticker Index]
+  under KEEPFILTERS(TREATAS({series name}, Ticker[ticker])), so the ticker slicer still applies.
+- Exception to "Power BI reads only mart.v_pbi_*": the table holds labels only, no numbers, and is used
+  only by this chart.
+- "Sector Index" is written in both the table and the measure; renaming one without the other drops
+  the sector line without an error.
+- [Sector Index] counts sessions on Sector Session, so the sector line does not depend on the ticker
+  selection.
+- Considered: relative strength per ticker with a constant line at 100 (one measure, no extra table).
+  Kept the index chart: it shows the sector's own path and the tickers on the same scale.

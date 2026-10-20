@@ -1,0 +1,25 @@
+table 'Index Series'
+	lineageTag: d96aae7d-2364-4b51-a782-a261c4dc4fc0
+
+	column Series
+		lineageTag: cba94055-6ebc-4665-a82a-8ab83763acbd
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Series]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Index Series' = calculated
+		mode: import
+		source =
+				
+				UNION (
+				    ROW ( "Series", "Sector Index" ),
+				    SELECTCOLUMNS (
+				        'Ticker',
+				        "Series", 'Ticker'[ticker]
+				    )
+				)
+
+	annotation PBI_Id = 039c996bb42e491a9ac09600d9038d6f
+

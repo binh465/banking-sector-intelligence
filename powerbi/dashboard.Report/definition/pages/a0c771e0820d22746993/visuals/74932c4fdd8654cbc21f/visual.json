@@ -4,10 +4,10 @@
   "position": {
     "x": 282.5,
     "y": 115,
-    "z": 3,
+    "z": 3000,
     "height": 161.25,
     "width": 968.75,
-    "tabOrder": 3
+    "tabOrder": 3000
   },
   "visual": {
     "visualType": "tableEx",
@@ -104,93 +104,5 @@
       }
     },
     "drillFilterOtherVisuals": true
-  },
-  "filterConfig": {
-    "filters": [
-      {
-        "name": "4f502d185ccba6530c60",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Episode"
-              }
-            },
-            "Property": "Episodes"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "d48272224fe7296003c1",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Ticker Session"
-              }
-            },
-            "Property": "Alert Sessions"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "3e0d626507b21230710d",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Episode"
-              }
-            },
-            "Property": "Episodes with News"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "8b383d4396a2729c9020",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "News"
-              }
-            },
-            "Property": "News Items"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "4fd01d231397e0b56207",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "News"
-              }
-            },
-            "Property": "News Items by Reaction Session"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "6d21b7528904adb3267c",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Episode News"
-              }
-            },
-            "Property": "Distinct Articles near Episodes"
-          }
-        },
-        "type": "Advanced"
-      }
-    ]
   }
 }

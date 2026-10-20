@@ -20,6 +20,7 @@ ref table News
 ref table 'Sector Session'
 ref table Ticker
 ref table 'Ticker Session'
+ref table 'Index Series'
 
 ref cultureInfo en-US
 

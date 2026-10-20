@@ -83,6 +83,19 @@ table 'Ticker Session'
 		formatString: 0
 		lineageTag: 9d86fde0-0349-4272-b586-46f13c3747e0
 
+	measure 'Ticker Index' = ```
+			
+			VAR LastSeq = MAX('Ticker Session'[session_seq])
+			RETURN 
+			    IF(
+			        HASONEVALUE(Ticker[ticker]),
+			        CALCULATE(MAX('Ticker Session'[ticker_index]), 'Ticker Session'[session_seq] = LastSeq)
+			    )
+			```
+		lineageTag: 57bea054-1e22-4307-82df-41b1087c2edf
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
 	column ticker
 		dataType: string
 		isHidden
