@@ -11,7 +11,7 @@ WITH counted AS (
 	GROUP BY ticker, start_seq
 )
 SELECT CONCAT(e.ticker, '|', e.start_seq) AS episode_key, 
-	e.ticker, e.direction, e.start_seq, e.end_seq, e.start_date_key, e.end_date_key, e.sessions, e.peak_z,
+	e.ticker, e.direction, e.start_seq, e.end_seq, e.start_date_key, e.end_date_key,e.start_date, e.end_date, e.sessions, e.peak_z,
 	e.sum_excess_ret, 
 	ISNULL(c.news_before, 0) AS news_before,
     ISNULL(c.news_during, 0) AS news_during,

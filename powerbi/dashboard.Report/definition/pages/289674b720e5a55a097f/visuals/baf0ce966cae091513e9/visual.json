@@ -1,0 +1,103 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "baf0ce966cae091513e9",
+  "position": {
+    "x": 1573.3966745843229,
+    "y": 328.36104513064134,
+    "z": 13000,
+    "height": 513.82422802850351,
+    "width": 305.55819477434676,
+    "tabOrder": 13000
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "How to read this page",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "20pt",
+                      "color": "#23446d"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "z = excess return vs the previous 60 sessions (current session excluded). |z| ≥ 3 marks an alert (threshold set in view 700). ",
+                    "textStyle": {
+                      "fontSize": "16pt",
+                      "color": "#0d6abf"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": ""
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "z is a distance, not a probability: returns have fat tails. ",
+                    "textStyle": {
+                      "fontSize": "16pt",
+                      "color": "#0d6abf"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": ""
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "\"Since when\": look for the date where z crosses ±3, the two index lines separate and corr_60 drops ",
+                    "textStyle": {
+                      "fontSize": "16pt",
+                      "color": "#0d6abf"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": ""
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Data analysis only, not investment advice.",
+                    "textStyle": {
+                      "fontSize": "16pt",
+                      "color": "#0d6abf"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

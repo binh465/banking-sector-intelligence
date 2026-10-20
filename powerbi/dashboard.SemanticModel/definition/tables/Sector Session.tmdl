@@ -20,6 +20,14 @@ table 'Sector Session'
 		formatString: 0.0000%;-0.0000%;0.0000%
 		lineageTag: 15d00bf5-08fc-4658-9d6e-98ab57ececcd
 
+	/// Returns the appropriate index value for the series currently displayed in the Sector & Ticker Index line chart.
+	/// 
+	/// - When the selected series is "Sector Index", returns [Sector Index], which represents the equal-weight sector index and is independent of the ticker selection.
+	/// - Otherwise, applies the selected ticker from `Index Series[Series]` to `Ticker[ticker]` using `TREATAS` and returns [Ticker Index].
+	/// - Respects the current date filter and ticker slicer selections, allowing the sector index and individual ticker indexes to be displayed on a common chart.
+	/// - The disconnected `Index Series` table contains display labels only and does not introduce an additional data source.
+	/// 
+	/// **Maintenance note:** The literal "Sector Index" must remain consistent between the `Index Series` calculated table and this measure. If the label changes in either location, update both to prevent the sector series from disappearing.
 	measure 'Index Chart Value' =
 			
 			VAR SeriesName =

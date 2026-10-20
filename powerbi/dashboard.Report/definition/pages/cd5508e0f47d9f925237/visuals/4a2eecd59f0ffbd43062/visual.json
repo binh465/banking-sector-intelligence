@@ -321,51 +321,5 @@
       ]
     },
     "drillFilterOtherVisuals": true
-  },
-  "filterConfig": {
-    "filters": [
-      {
-        "name": "6302f1281682ac2288c3",
-        "field": {
-          "Column": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Date"
-              }
-            },
-            "Property": "full_date"
-          }
-        },
-        "type": "Categorical"
-      },
-      {
-        "name": "7e2a69ef2fdcbc98451e",
-        "field": {
-          "Column": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Index Series"
-              }
-            },
-            "Property": "Series"
-          }
-        },
-        "type": "Categorical"
-      },
-      {
-        "name": "b2ba27bfd730acaa2cc0",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Sector Session"
-              }
-            },
-            "Property": "Index Chart Value"
-          }
-        },
-        "type": "Advanced"
-      }
-    ]
   }
 }

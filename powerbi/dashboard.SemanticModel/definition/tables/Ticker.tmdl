@@ -1,6 +1,12 @@
 table Ticker
 	lineageTag: 3b89a50b-4762-4428-9998-35f746d37a9c
 
+	measure 'Selected Ticker Title' = ```
+			
+			  "Relative Strength – " & SELECTEDVALUE ( Ticker[ticker], "select one ticker" )
+			```
+		lineageTag: 40548475-cc75-4509-b756-30f2637249b8
+
 	column ticker
 		dataType: string
 		lineageTag: 6fac3f5a-94e6-4e9e-8b94-637b2cf682dc

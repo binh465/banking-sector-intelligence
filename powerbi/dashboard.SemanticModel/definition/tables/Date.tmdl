@@ -2,6 +2,23 @@ table Date
 	lineageTag: 0f896410-9cd4-4129-a410-f2cb5f2f0e8c
 	dataCategory: Time
 
+	measure 'Axis Start' = MIN ( 'Date'[full_date] )
+		formatString: mmmm yyyy
+		lineageTag: 709e40bc-b630-40e2-b51b-8d35b9133ec5
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	measure 'Axis End' = MAX ( 'Date'[full_date] )
+		formatString: mmmm yyyy
+		lineageTag: 1ff55f1a-0bd9-4144-9f10-c070dbed0b98
+
+		annotation PBI_FormatHint = {"isDateTimeCustom":true}
+
+	measure 'Max Abs z' = MAXX ( 'Ticker Session', ABS ( 'Ticker Session'[z] ) )
+		lineageTag: cc4d7a9e-cf61-4688-9c79-b01d254f2ae1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
 	column date_key
 		dataType: int64
 		isHidden
