@@ -164,6 +164,30 @@ table Episode
 
 		annotation SummarizationSetBy = User
 
+	column start_date
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 0c39655d-7b40-4b40-86f9-77ec04686a93
+		summarizeBy: none
+		sourceColumn: start_date
+
+		changedProperty = DataType
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column end_date
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 3f84f248-86fc-42d8-9790-1b5d2cc47db6
+		summarizeBy: none
+		sourceColumn: end_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
 	partition Episode = m
 		mode: import
 		source =
