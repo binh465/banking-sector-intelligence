@@ -830,7 +830,7 @@ Views in schema `mart`, files `sql/03_transform/600-...`. Every window function 
   tier 0 filings (6) and tier 2 press items (9) are all b.
 - All 20 items belong to up-side episodes (80 of the 96 episodes are up-side), so the sample says
   nothing about news around down-side episodes.
-- SHB session 116, the largest |z| in the data (7.62): 3 items in the sample, 2 of them report the
+- SHB session 116, the largest positive z in the data (7.62; the largest |z| is TPB session 120, -8.15): 3 items in the sample, 2 of them report the
   shares hitting the ceiling.
 - Reading: half of the items inside episodes are routine or promotional, about a third are material
   events, a fifth report the move itself, none is a wrong match. With 20 items these shares are
