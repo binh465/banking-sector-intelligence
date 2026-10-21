@@ -487,3 +487,9 @@ queries 7 and 8 (results in `pipeline_log.md`, 2.4).
 - Considered: syncing the ticker between Relative Strength and Divergence Alerts, so the ticker
   picked on the first carries to the second. Not kept: clearing the selection on Divergence Alerts
   to see all episodes would leave Relative Strength blank.
+
+## 2026-10-21 - Phase 11 (scheduled job) cut
+- Cut first, as the roadmap's cut order says. The price window is locked (2024-09-26 to
+  2026-09-25), so a scheduled job would only reload the same data.
+- Loading and refresh stay manual: Phase 1 scripts, `dw.sp_load_dw`, `dw.sp_load_fact_news`,
+  `dq.sp_run_checks`, then Refresh in Power BI Desktop. The README says so.
