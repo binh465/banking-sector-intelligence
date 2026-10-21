@@ -1093,3 +1093,34 @@ Checks (page "QA - measure checks"):
   Episodes 601 (= COUNT(DISTINCT article_key) in v_pbi_episode_news), News Items 5,145, News Items
   by Reaction Session 5,135.
 - Monday 2025-06-30: 8 news items by publish date, 21 by reaction session, both equal to SQL.
+
+### 10.5 Report pages
+Three report pages read the measures checked in 10.4; no new calculation on the pages except display
+helpers (Index Series / Index Chart Value, Selected Ticker Title, Axis Start / Axis End).
+
+- Sector Overview: sector index and ticker indexes on one chart (calculated table Index Series,
+  decisions 2026-10-20), card Sector Period Return, table of period return / excess return / rank.
+  Checked, full window: Sector Period Return 41.3408%; end points 25/09/2026 sector 141.34,
+  STB 233.59, VPB 154.67; every line starts at 100 on 26/09/2024; the ticker slicer limits the chart.
+- Relative Strength (one ticker): cards Latest RS / z / corr_60, Excess Period Return, Alert Sessions;
+  ticker vs sector index, z with lines at +3 and -3 (axis fixed -9..9; max |z| in the data 8.15),
+  corr_60 (axis 0..1; data range 0.31-0.96). The three charts share the slicer's date range through
+  Axis Start / Axis End. Checked: VCB full window -0.55 / 67.36 / 0.698; alert sessions sum to 100
+  over the 10 tickers; corr_60 first appears at session 61 (19/12/2024) and z at session 62
+  (20/12/2024); HDB 22-24/07/2025 shows the 3-session episode (peak 4.32); SHB 14 and 17/03/2025
+  shows the 2-session episode (peak 7.62); Max Abs z on the QA page 8.15 = SQL.
+- Divergence Alerts: cards Episodes / Episodes with News / Distinct Articles near Episodes / Alert
+  Sessions; episodes table (peak_z with up/down icons by sign); selecting an episode filters the news
+  table (sorted by offset from the episode start, blank title filtered out); news items by reaction
+  session per day; a note with the Phase 7 base rate (97.7% of ordinary 5-session windows have news)
+  and that news near an episode is a coincidence in time, not a cause. Checked, full window:
+  96 / 95 / 601 / 100; HDB|204 news before / during / after 1 / 4 / 5 = SQL; CTG|212 (no news) shows
+  an empty news table; 30/06/2025 = 21 news items by reaction session; links open the CafeF page.
+
+### 10.6 Report settings
+- Slicers (decisions 2026-10-21): date synced on the three report pages (group `date`), ticker slicer
+  per page: Sector Overview multi-select, Relative Strength single select with forced selection,
+  Divergence Alerts multi-select. Checked: a date change on one page carries to the other two and
+  not to the QA page; a ticker change on one page does not.
+- Page "QA - measure checks" hidden in view mode; Sector Overview is the first page.
+- Not done: refresh is manual in Power BI Desktop (no Power BI Service, no gateway).

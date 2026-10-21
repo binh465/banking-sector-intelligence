@@ -109,6 +109,7 @@ table Episode
 
 	column peak_z
 		dataType: double
+		formatString: 0.00
 		lineageTag: c19977c8-290e-4f0a-82fd-e33e2946e16f
 		summarizeBy: none
 		sourceColumn: peak_z
@@ -116,8 +117,6 @@ table Episode
 		changedProperty = IsHidden
 
 		annotation SummarizationSetBy = User
-
-		annotation PBI_FormatHint = {"isGeneralNumber":true}
 
 	column sum_excess_ret
 		dataType: double

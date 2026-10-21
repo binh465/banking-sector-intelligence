@@ -61,7 +61,7 @@
             "strictSingleSelect": {
               "expr": {
                 "Literal": {
-                  "Value": "false"
+                  "Value": "true"
                 }
               }
             },
@@ -171,7 +171,7 @@
                           [
                             {
                               "Literal": {
-                                "Value": "'TPB'"
+                                "Value": "'ACB'"
                               }
                             }
                           ]
@@ -238,6 +238,11 @@
           }
         }
       ]
+    },
+    "syncGroup": {
+      "groupName": "ticker_rs",
+      "fieldChanges": true,
+      "filterChanges": true
     },
     "drillFilterOtherVisuals": true
   }

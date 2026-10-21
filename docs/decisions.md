@@ -477,3 +477,13 @@ queries 7 and 8 (results in `pipeline_log.md`, 2.4).
   selection.
 - Considered: relative strength per ticker with a constant line at 100 (one measure, no extra table).
   Kept the index chart: it shows the sector's own path and the tickers on the same scale.
+
+## 2026-10-21 - Phase 10: slicer sync across report pages
+- Date slicer (Date[full_date]) synced on Sector Overview, Relative Strength and Divergence Alerts,
+  sync group `date`. Not synced on the QA page, which keeps its own ranges for checks.
+- Ticker slicer: one per page, not synced. Sector Overview: multi-select (compare several tickers
+  with the sector). Relative Strength: single select with forced selection (every measure on the
+  page needs exactly one ticker). Divergence Alerts: multi-select (all 96 episodes or a subset).
+- Considered: syncing the ticker between Relative Strength and Divergence Alerts, so the ticker
+  picked on the first carries to the second. Not kept: clearing the selection on Divergence Alerts
+  to see all episodes would leave Relative Strength blank.

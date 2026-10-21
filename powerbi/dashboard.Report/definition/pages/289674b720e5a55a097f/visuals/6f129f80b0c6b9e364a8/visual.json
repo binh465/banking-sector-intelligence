@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
-  "name": "4fd9b7b957b00c55d317",
+  "name": "6f129f80b0c6b9e364a8",
   "position": {
-    "x": 1042.8503562945368,
+    "x": 1071.4285714285716,
     "y": 0,
-    "z": 3000,
-    "height": 138.3372921615202,
-    "width": 478.85985748218525,
-    "tabOrder": 0
+    "z": 20001,
+    "height": 138.57142857142858,
+    "width": 434.28571428571433,
+    "tabOrder": 20001
   },
   "visual": {
     "visualType": "slicer",
@@ -56,17 +56,10 @@
       "data": [
         {
           "properties": {
-            "startDate": {
-              "expr": {
-                "Literal": {
-                  "Value": "datetime'2025-03-20T00:00:00'"
-                }
-              }
-            },
             "endDate": {
               "expr": {
                 "Literal": {
-                  "Value": "datetime'2025-04-20T00:00:00'"
+                  "Value": "datetime'2026-09-25T00:00:00'"
                 }
               }
             },
@@ -74,6 +67,13 @@
               "expr": {
                 "Literal": {
                   "Value": "'Between'"
+                }
+              }
+            },
+            "startDate": {
+              "expr": {
+                "Literal": {
+                  "Value": "datetime'2024-09-26T00:00:00'"
                 }
               }
             }
@@ -178,7 +178,7 @@
                             },
                             "Right": {
                               "Literal": {
-                                "Value": "datetime'2025-03-20T00:00:00'"
+                                "Value": "datetime'2024-09-26T00:00:00'"
                               }
                             }
                           }
@@ -198,7 +198,7 @@
                             },
                             "Right": {
                               "Literal": {
-                                "Value": "datetime'2025-04-21T00:00:00'"
+                                "Value": "datetime'2026-09-26T00:00:00'"
                               }
                             }
                           }
@@ -207,31 +207,6 @@
                     }
                   }
                 ]
-              }
-            }
-          }
-        }
-      ],
-      "slider": [
-        {
-          "properties": {
-            "handleBorderColor": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "ThemeDataColor": {
-                      "ColorId": 0,
-                      "Percent": 0
-                    }
-                  }
-                }
-              }
-            },
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "true"
-                }
               }
             }
           }
@@ -296,76 +271,12 @@
             }
           }
         }
-      ],
-      "background": [
-        {
-          "properties": {
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "border": [
-        {
-          "properties": {
-            "show": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "visualHeader": [
-        {
-          "properties": {
-            "foreground": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "ThemeDataColor": {
-                      "ColorId": 0,
-                      "Percent": 0
-                    }
-                  }
-                }
-              }
-            },
-            "border": {
-              "solid": {
-                "color": {
-                  "expr": {
-                    "ThemeDataColor": {
-                      "ColorId": 0,
-                      "Percent": 0
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      ],
-      "general": [
-        {
-          "properties": {
-            "keepLayerOrder": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
-                }
-              }
-            }
-          }
-        }
       ]
+    },
+    "syncGroup": {
+      "groupName": "date",
+      "fieldChanges": true,
+      "filterChanges": true
     },
     "drillFilterOtherVisuals": true
   }

@@ -348,37 +348,5 @@
       ]
     },
     "drillFilterOtherVisuals": true
-  },
-  "filterConfig": {
-    "filters": [
-      {
-        "name": "eebfb0558a15206a4dc3",
-        "field": {
-          "Column": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Date"
-              }
-            },
-            "Property": "full_date"
-          }
-        },
-        "type": "Categorical"
-      },
-      {
-        "name": "3f6b870d642a2c3c110b",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Ticker Session"
-              }
-            },
-            "Property": "Latest corr_60"
-          }
-        },
-        "type": "Advanced"
-      }
-    ]
   }
 }

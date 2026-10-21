@@ -5,8 +5,8 @@
     "x": 41.428571428571431,
     "y": 582.85714285714289,
     "z": 11000,
-    "height": 225.71428571428572,
-    "width": 1464.2857142857144,
+    "height": 212.85714285714286,
+    "width": 1462.8571428571429,
     "tabOrder": 11000
   },
   "visual": {
@@ -568,37 +568,5 @@
       ]
     },
     "drillFilterOtherVisuals": true
-  },
-  "filterConfig": {
-    "filters": [
-      {
-        "name": "0b286d47e478e000a3da",
-        "field": {
-          "Measure": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Ticker Session"
-              }
-            },
-            "Property": "Latest z"
-          }
-        },
-        "type": "Advanced"
-      },
-      {
-        "name": "65963001fc20c1d39df6",
-        "field": {
-          "Column": {
-            "Expression": {
-              "SourceRef": {
-                "Entity": "Date"
-              }
-            },
-            "Property": "full_date"
-          }
-        },
-        "type": "Categorical"
-      }
-    ]
   }
 }
