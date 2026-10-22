@@ -394,17 +394,24 @@ Full record: [`docs/pipeline_log.md`](docs/pipeline_log.md). Decisions and reaso
 Loading and refresh are manual (no scheduler; SQL Server Express has no Agent).
 This is the order used during development; it has not yet been re-run end to end on an empty database.
 
+In the public release `raw/` holds no data files (see Data sources and terms): run the download
+and crawl scripts in `ingest/` first, in the order given for Phase 1 in `docs/pipeline_log.md`.
+
 1. `conda activate bsi`, `pip install -r requirements.txt`; copy `config/db.yaml` from its template.
-2. SSMS: `sql/01_ddl` in file order (skip `900`/`901`, they drop objects).
-3. Python, Phase 1 loaders from the saved files (`ingest/load_*.py`), see
-   "Rebuild Phase 1" in `docs/pipeline_log.md`. Downloading again gives different numbers:
+   `raw/news/` (not in git) must be on disk.
+2. SSMS: `sql/01_ddl` in file order, `000` to `500` (skip `900`/`901`, they drop objects).
+3. Python, from the saved files (no download): `load_config.py`, `load_prices.py`,
+   `load_ticker_news.py`, `load_lastmod_sample.py`, `load_articles.py`, `load_aliases.py`,
+   `load_precision_labels.py` (all in `ingest/`). Downloading again gives different numbers:
    VCI restates history and CafeF pages change.
-4. SSMS: `sql/02_load` in file order.
+4. SSMS: `sql/02_load/100`, `110`, `120`.
 5. SSMS: create procedures `sql/03_transform/400-490`, then `EXEC dw.sp_load_dw;`
 6. SSMS: `sql/03_transform/500_match_articles.sql`, create `510`, then `EXEC dw.sp_load_fact_news;`
-7. SSMS: create views `sql/03_transform/600-860`.
-8. SSMS: create `sql/04_quality/800_sp_run_checks.sql`, then `EXEC dq.sp_run_checks;`
-9. Power BI Desktop: open `powerbi/dashboard.pbip`, Refresh.
+7. SSMS: `sql/04_quality/520_precision_sample.sql` (creates `stg.v_precision_sample`), then
+   `sql/02_load/130_load_stg_precision_label.sql`.
+8. SSMS: create views `sql/03_transform/600-860`.
+9. SSMS: create `sql/04_quality/800_sp_run_checks.sql`, then `EXEC dq.sp_run_checks;`
+10. Power BI Desktop: open `powerbi/dashboard.pbip`, Refresh.
 
 ## Limitations
 
@@ -431,7 +438,7 @@ for this project.
 ```
 config/   scope (locked window), tickers, aliases, db connection template
 ingest/   Python download, crawl and load scripts (Phase 1)
-raw/      prices and calendar (committed); news HTML/XML (not committed)
+raw/      no data files in the public release (see Data sources and terms)
 sql/      01_ddl, 02_load, 03_transform, 04_quality
 powerbi/  dashboard.pbip (report + semantic model, TMDL)
 docs/     data_dictionary, pipeline_log, decisions, price_adjustment_check,
