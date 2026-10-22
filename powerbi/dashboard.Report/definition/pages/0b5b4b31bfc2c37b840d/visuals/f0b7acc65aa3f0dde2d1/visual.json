@@ -27,7 +27,7 @@
                     }
                   },
                   {
-                    "value": ". News within ±2 sessions of each episode, by reaction session; sector-wide news excluded. Position: before / during / after the episode. Base rate (full window, Phase 7): 95 of 96 episodes have news nearby, but so do 97.7% of ordinary 5-session windows. A news item near an episode is a coincidence in time, not evidence of cause. Data analysis only, not investment advice.",
+                    "value": ". News within ±2 sessions of each episode, by reaction session; sector-wide news excluded. Position: before / during / after the episode. Base rate (see Finding 5 in the README): 95 of 96 episodes have news nearby, but so do 97.7% of ordinary 5-session windows. A news item near an episode is a coincidence in time, not evidence of cause. Data analysis only, not investment advice.",
                     "textStyle": {
                       "fontFamily": "Segoe UI Semibold",
                       "fontSize": "14pt",

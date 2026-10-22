@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
   "name": "4a2eecd59f0ffbd43062",
   "position": {
-    "x": 41.666666666666671,
-    "y": 128.33333333333334,
+    "x": 41.345707656612525,
+    "y": 137.81902552204176,
     "z": 5000,
-    "height": 430,
-    "width": 1096.6666666666667,
+    "height": 420.97447795823666,
+    "width": 1097.54060324826,
     "tabOrder": 3000
   },
   "visual": {
@@ -237,6 +237,101 @@
                 }
               }
             }
+          }
+        },
+        {
+          "properties": {
+            "lineStyle": {
+              "expr": {
+                "Literal": {
+                  "Value": "'solid'"
+                }
+              }
+            },
+            "strokeWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "5D"
+                }
+              }
+            },
+            "lineChartType": {
+              "expr": {
+                "Literal": {
+                  "Value": "'smooth'"
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "scopeId": {
+                  "Comparison": {
+                    "ComparisonKind": 0,
+                    "Left": {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Entity": "Index Series"
+                          }
+                        },
+                        "Property": "Series"
+                      }
+                    },
+                    "Right": {
+                      "Literal": {
+                        "Value": "'Sector Index'"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "dataPoint": [
+        {
+          "properties": {
+            "fill": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 0,
+                      "Percent": -0.6
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "data": [
+              {
+                "scopeId": {
+                  "Comparison": {
+                    "ComparisonKind": 0,
+                    "Left": {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Entity": "Index Series"
+                          }
+                        },
+                        "Property": "Series"
+                      }
+                    },
+                    "Right": {
+                      "Literal": {
+                        "Value": "'Sector Index'"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
           }
         }
       ]

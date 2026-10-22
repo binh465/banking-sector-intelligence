@@ -108,7 +108,7 @@
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "13D"
+                  "Value": "10D"
                 }
               }
             },
@@ -116,6 +116,13 @@
               "expr": {
                 "Literal": {
                   "Value": "'markerCircleDefault'"
+                }
+              }
+            },
+            "fontFamily": {
+              "expr": {
+                "Literal": {
+                  "Value": "'''Segoe UI Semibold'', wf_segoe-ui_semibold, helvetica, arial, sans-serif'"
                 }
               }
             }
@@ -170,7 +177,7 @@
             "fontSize": {
               "expr": {
                 "Literal": {
-                  "Value": "15D"
+                  "Value": "10D"
                 }
               }
             },
@@ -260,7 +267,7 @@
             "showMarker": {
               "expr": {
                 "Literal": {
-                  "Value": "true"
+                  "Value": "false"
                 }
               }
             }

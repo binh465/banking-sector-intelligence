@@ -23,7 +23,7 @@ table 'Ticker Session'
 			VAR S = [Sector Period Return]
 			RETURN
 			    IF ( NOT ISBLANK ( T ) && NOT ISBLANK ( S ), T - S )
-		formatString: 0.0000%;-0.0000%;0.0000%
+		formatString: 0.0%;-0.0%;0.0%
 		lineageTag: 28cc2eee-484b-4b75-aff4-2faa19652cbe
 
 	measure 'Return Rank' =

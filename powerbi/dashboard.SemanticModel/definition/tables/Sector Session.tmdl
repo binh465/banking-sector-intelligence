@@ -17,7 +17,7 @@ table 'Sector Session'
 			        DIVIDE(EndIndex, BaseIndex) - 1
 			    )
 			```
-		formatString: 0.0000%;-0.0000%;0.0000%
+		formatString: 0.0%;-0.0%;0.0%
 		lineageTag: 15d00bf5-08fc-4658-9d6e-98ab57ececcd
 
 	/// Returns the appropriate index value for the series currently displayed in the Sector & Ticker Index line chart.

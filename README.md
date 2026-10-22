@@ -409,28 +409,23 @@ Loading and refresh are manual (no scheduler; SQL Server Express has no Agent).
 
 ## Limitations
 
-- **One news source, titles only.** CafeF only; banks are matched on the title. Titles that do not
-  name the bank ("Một ngân hàng ...") are missed. Against CafeF's own per-ticker lists, 227 of 387
-  readable articles were matched (0.587); that is agreement, not recall, since CafeF tags by the body.
-- **Precision comes with usability.** Correct bank: 0.990 overall, 0.985 for articles. Correct bank
-  *and* the bank is the main subject: 0.656 overall, 0.487 for articles. Weighted by stratum, 300
-  labelled pairs. The weak-alias tier (tier 3) has no entries.
-- **Publish time.** Taken from `article:published_time`; 94 pages have none. Using sitemap
-  `lastmod` instead would move about 8.4% of articles to a different session.
-- **Sector definition.** Equal weight, including the ticker itself at 1/10. This raises each
-  ticker's correlation with the sector; z is unaffected (excess = 0.9 × the leave-one-out excess).
-  One large move in one ticker shifts the sector for all others (finding 4).
-- **z is a distance, not a probability.** Returns have fat tails (|z| ≥ 3 at 6-11 times the normal
-  rate). Large moves widen later windows and can hide the next one (masking). In a calm window a
-  move of about 1% can reach |z| ≥ 3.
-- **Small sample.** Two years; 96 episodes (80 up, 16 down); 99 alert sessions in the base rate.
-  No significance test was run.
-- **Prices.** Adjusted by VCI, including cash dividends (checked at one ex-date). VCI restates
-  history, so `raw/prices` as committed is the reference copy.
-- **Survivorship bias.** The 10 banks are chosen as they are listed today.
-- **Data quality reconciliation** re-applies the load rules, so it finds stale or partial loads,
-  not a rule that is wrong in both the loader and the check.
-- **Not investment advice.** Timing coincidences only; no causal claim.
+- **One news source, titles only.** CafeF only; banks are matched using article titles. Articles
+  whose titles do not name the bank (e.g. "Một ngân hàng ...") may be missed. Of the 387 entries on
+  CafeF's per-ticker lists (ticker-article pairs) whose article is in the crawled sitemaps, 227 were
+  matched to the listed ticker (58.7%). This is an agreement rate, not recall, because CafeF tags
+  tickers based on the article body.
+- **Matching precision and relevance.** The matched bank was correct in 99.0% of labelled pairs overall and 98.5% of article pairs. The matched ticker was correct and the bank was the main subject of the item in 65. 6% of labelled pairs overall and 48.7% of article pairs. These estimates are weighted by stratum, based on 300 labelled pairs, and use the matching rules as they stood when the sample was drawn. One reviewer labelled the pairs, so inter-rater agreement was not measured. The weak-alias tier (tier 3) has no entries.
+- **Sector-wide flag.** Items naming three or more banks (including banks outside the ten) are kept but not used to explain a single ticker. Some still focus on one bank: in the labelled sample, 14 of 97 flagged pairs had the bank as the main subject (unweighted sample counts).
+- **Publish time.** Publication times come from `article:published_time`; 94 pages have no value for this field. Using sitemap `lastmod` instead would assign about 8.4% of articles to a different session. Date-only disclosures are assigned to the next session, so their actual publication times are unknown (Finding 4).
+- **Sector definition.** The sector return is an equal-weight average, not market-cap weighted, so a small bank contributes as much as VCB. When all ten ticker returns are available, each contributes 1/10 to the sector return. This self-inclusion raises each ticker's correlation with the sector, but its excess return is exactly 0.9 times its leave-one-out excess return, leaving its z-score unchanged. A large move in one ticker also affects the sector return used to calculate excess returns for all the other tickers (Finding 4).
+- **z-score is a distance, not a probability.** Sessions with |z| ≥ 3 occur 6 to 11 times as often as a standard normal distribution would predict, depending on the ticker. A large excess return can widen the rolling standard deviation in later sessions and hide a later move: SHB's excess return on 18 March 2025 was almost unchanged from the previous session, but its z-score fell to 2.90 (Finding 1). In a calm window, an excess return of about 1% can reach |z| ≥ 3.
+- **z-scores detect jumps, not trends.** The alert rule detects unusually large daily excess returns relative to recent sessions, but can miss gradual outperformance. From the end of Q1 2026 to 25 September 2026, STB's RS rose 22.3% without an alert session (Finding 2). The Relative Strength page shows this kind of trend.
+- **Small sample.** Two years of data; 96 episodes (80 upward, 16 downward); 99 alert sessions in the base-rate comparison. The 100th alert session falls within the final two sessions of its ticker's series, so it has no complete five-session window. No statistical significance test was run.
+- **Prices.** Prices are adjusted by VCI, including cash dividends; the adjustment was checked at one ex-date. VCI may restate historical data, so the committed `raw/prices` files are the reference copy
+for this project.
+- **Survivorship bias.** The ten banks were chosen when the scope was set (September 2026), from banks listed at that time. A bank that was listed during the window but delisted or merged before then could not be chosen.
+- **Data quality reconciliation.** The checks reapply the load rules, so they can detect stale or partial loads but cannot detect a rule that is wrong in the same way in both the loader and the check.
+- **Not investment advice.** Alerts and news matches show timing associations, not proof of causation.
 
 ## Repository
 
