@@ -363,6 +363,7 @@ queries 7 and 8 (results in `pipeline_log.md`, 2.4).
   c only if the bank's name appears with nothing about it.
 - When the sitemap title differs from the article (seen from the URL): label by the title; what the
   URL shows goes to note and does not change the label.
+- Who labelled: Binh set all 20 labels.
 
 ## 2026-10-14 - Data quality results: schema dq, two tables, sample keys
 - A fifth schema, `dq`, beside raw / stg / dw / mart. Check history must survive a rebuild of the

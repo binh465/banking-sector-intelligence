@@ -107,7 +107,7 @@ table 'Sector Session'
 		mode: import
 		source =
 				let
-				    Source = Sql.Database("<machine>\SQLEXPRESS", "BankingSectorIntelligence"),
+				    Source = Sql.Database(SqlServer, "BankingSectorIntelligence"),
 				    mart_v_pbi_sector_session = Source{[Schema="mart",Item="v_pbi_sector_session"]}[Data],
 				    #"Changed Type" = Table.TransformColumnTypes(mart_v_pbi_sector_session,{{"session_seq", Int64.Type}})
 				in

@@ -170,8 +170,6 @@ table Episode
 		summarizeBy: none
 		sourceColumn: start_date
 
-		changedProperty = DataType
-
 		annotation SummarizationSetBy = Automatic
 
 		annotation UnderlyingDateTimeDataType = Date
@@ -191,7 +189,7 @@ table Episode
 		mode: import
 		source =
 				let
-				    Source = Sql.Database("<machine>\SQLEXPRESS", "BankingSectorIntelligence"),
+				    Source = Sql.Database(SqlServer, "BankingSectorIntelligence"),
 				    mart_v_pbi_episode = Source{[Schema="mart",Item="v_pbi_episode"]}[Data],
 				    #"Changed Type" = Table.TransformColumnTypes(mart_v_pbi_episode,{{"start_seq", Int64.Type}, {"end_seq", Int64.Type}})
 				in

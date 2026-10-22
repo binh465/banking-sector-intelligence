@@ -163,7 +163,7 @@ table Date
 		mode: import
 		source =
 				let
-				    Source = Sql.Database("<machine>\SQLEXPRESS", "BankingSectorIntelligence"),
+				    Source = Sql.Database(SqlServer, "BankingSectorIntelligence"),
 				    mart_v_pbi_date = Source{[Schema="mart",Item="v_pbi_date"]}[Data],
 				    #"Changed Type" = Table.TransformColumnTypes(mart_v_pbi_date,{{"session_seq", Int64.Type}})
 				in

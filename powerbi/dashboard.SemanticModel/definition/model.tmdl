@@ -9,7 +9,7 @@ model Model
 
 annotation __PBI_TimeIntelligenceEnabled = 0
 
-annotation PBI_QueryOrder = ["Date","Episode","Episode News","News","Sector Session","Ticker","Ticker Session"]
+annotation PBI_QueryOrder = ["Date","Episode","Episode News","News","Sector Session","Ticker","Ticker Session","SqlServer"]
 
 annotation PBI_ProTooling = ["DevMode"]
 

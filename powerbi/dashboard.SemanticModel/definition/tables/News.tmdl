@@ -137,7 +137,7 @@ table News
 		mode: import
 		source =
 				let
-				    Source = Sql.Database("<machine>\SQLEXPRESS", "BankingSectorIntelligence"),
+				    Source = Sql.Database(SqlServer, "BankingSectorIntelligence"),
 				    mart_v_pbi_news = Source{[Schema="mart",Item="v_pbi_news"]}[Data]
 				in
 				    mart_v_pbi_news

@@ -41,7 +41,7 @@ table Ticker
 		mode: import
 		source =
 				let
-				    Source = Sql.Database("<machine>\SQLEXPRESS", "BankingSectorIntelligence"),
+				    Source = Sql.Database(SqlServer, "BankingSectorIntelligence"),
 				    mart_v_pbi_ticker = Source{[Schema="mart",Item="v_pbi_ticker"]}[Data]
 				in
 				    mart_v_pbi_ticker

@@ -145,7 +145,6 @@ index ratios, ranks, titles); the series themselves come from SQL.
 | Relative Strength | RS = 100 × ticker index / sector index, rolling 60-session correlation, z of excess return with the ±3 lines |
 | Divergence Alerts | episodes (consecutive sessions with \|z\| ≥ 3), news within ±2 sessions, links to the source |
 
-<!-- TODO Binh: screenshots -->
 ![Sector Overview](docs/img/sector_overview.png)
 ![Relative Strength](docs/img/relative_strength.png)
 ![Divergence Alerts](docs/img/divergence_alerts.png)
@@ -190,7 +189,7 @@ WHERE ticker = 'SHB' AND start_date = '2025-03-14'
 ORDER BY reaction_seq, publish_time_local;
 ```
 
-On 14 March 2025, SHB hit the daily price ceiling, rising 7.02% while the sector gained 0.93%. Its excess return was 6.09%, with a z-score of 7.62, the highest positive z-score over the two-year period. The episode continued on 17 March, with an excess return of 3.66% and a z-score of 3.20, while RS rose from 97.25 on 13 March to 106.84 on 17 March. On 18 March, the excess return was still 3.65%, but the z-score fell to 2.90, just below the threshold of 3. As the 60-session window rolled forward, the 17 March excess return entered and the 13 December 2024 excess return (-0.67%) left the window; the standard deviation rose by about 8%, mmainly due to the incoming large excess return. Two announcements preceded the episode, including one about a share issue to pay a stock dividend, while two articles on 14 March reported SHB's ceiling-price gain. News linked to 17 March was published after the 14 March session. One article published on 15 March expected a foreign ETF to sell a large amount of SHB shares during its rebalancing; most of the other reports were routine or promotional. The available news does not establish what caused the price increase.
+On 14 March 2025, SHB hit the daily price ceiling, rising 7.02% while the sector gained 0.93%. Its excess return was 6.09%, with a z-score of 7.62, the highest positive z-score over the two-year period. The episode continued on 17 March, with an excess return of 3.66% and a z-score of 3.20, while RS rose from 97.25 on 13 March to 106.84 on 17 March. On 18 March, the excess return was still 3.65%, but the z-score fell to 2.90, just below the threshold of 3. As the 60-session window rolled forward, the 17 March excess return entered and the 13 December 2024 excess return (-0.67%) left the window; the standard deviation rose by about 8%, mainly due to the incoming large excess return. Two announcements preceded the episode, including one about a share issue to pay a stock dividend, while two articles on 14 March reported SHB's ceiling-price gain. News linked to 17 March was published after the 14 March session. One article published on 15 March expected a foreign ETF to sell a large amount of SHB shares during its rebalancing; most of the other reports were routine or promotional. The available news does not establish what caused the price increase.
 
 ### 2. STB, above the sector after the base session
 
@@ -393,8 +392,8 @@ Full record: [`docs/pipeline_log.md`](docs/pipeline_log.md). Decisions and reaso
 ## How to run
 
 Loading and refresh are manual (no scheduler; SQL Server Express has no Agent).
+This is the order used during development; it has not yet been re-run end to end on an empty database.
 
-<!-- TODO: verify this order on an empty database before publishing -->
 1. `conda activate bsi`, `pip install -r requirements.txt`; copy `config/db.yaml` from its template.
 2. SSMS: `sql/01_ddl` in file order (skip `900`/`901`, they drop objects).
 3. Python, Phase 1 loaders from the saved files (`ingest/load_*.py`), see
@@ -414,7 +413,7 @@ Loading and refresh are manual (no scheduler; SQL Server Express has no Agent).
   CafeF's per-ticker lists (ticker-article pairs) whose article is in the crawled sitemaps, 227 were
   matched to the listed ticker (58.7%). This is an agreement rate, not recall, because CafeF tags
   tickers based on the article body.
-- **Matching precision and relevance.** The matched bank was correct in 99.0% of labelled pairs overall and 98.5% of article pairs. The matched ticker was correct and the bank was the main subject of the item in 65. 6% of labelled pairs overall and 48.7% of article pairs. These estimates are weighted by stratum, based on 300 labelled pairs, and use the matching rules as they stood when the sample was drawn. One reviewer labelled the pairs, so inter-rater agreement was not measured. The weak-alias tier (tier 3) has no entries.
+- **Matching precision and relevance.** The matched bank was correct in 99.0% of labelled pairs overall and 98.5% of article pairs. The matched ticker was correct and the bank was the main subject of the item in 65.6% of labelled pairs overall and 48.7% of article pairs. These estimates are weighted by stratum, based on 300 labelled pairs, and use the matching rules as they stood when the sample was drawn. One reviewer labelled the pairs, so inter-rater agreement was not measured. The weak-alias tier (tier 3) has no entries.
 - **Sector-wide flag.** Items naming three or more banks (including banks outside the ten) are kept but not used to explain a single ticker. Some still focus on one bank: in the labelled sample, 14 of 97 flagged pairs had the bank as the main subject (unweighted sample counts).
 - **Publish time.** Publication times come from `article:published_time`; 94 pages have no value for this field. Using sitemap `lastmod` instead would assign about 8.4% of articles to a different session. Date-only disclosures are assigned to the next session, so their actual publication times are unknown (Finding 4).
 - **Sector definition.** The sector return is an equal-weight average, not market-cap weighted, so a small bank contributes as much as VCB. When all ten ticker returns are available, each contributes 1/10 to the sector return. This self-inclusion raises each ticker's correlation with the sector, but its excess return is exactly 0.9 times its leave-one-out excess return, leaving its z-score unchanged. A large move in one ticker also affects the sector return used to calculate excess returns for all the other tickers (Finding 4).
@@ -441,5 +440,3 @@ docs/     data_dictionary, pipeline_log, decisions, price_adjustment_check,
 
 Naming: `raw_`, `stg_`, `dim_`, `fact_`, `v_` (view), `sp_` (procedure).
 Schemas: `raw`, `stg`, `dw`, `mart`, `dq`.
-
-<!-- TODO: data source terms and what is public; decided before the repo goes public -->

@@ -43,7 +43,7 @@ All Python runs from the repo root in the conda env `bsi`. SQL files run in SSMS
 - `requirements.txt`: the extra index URL plus 9 pinned direct dependencies.
   Checked with `pip install -r requirements.txt` (all "already satisfied").
 - `config/db.yaml` values must be quoted (`"yes"`), PyYAML reads a bare yes as True.
-- `python ingest/db.py` -> connected as <machine>\<user>, collation Vietnamese_100_CI_AS.
+- `python ingest/db.py` -> connected with Windows Authentication (login `<machine>\<user>`), collation Vietnamese_100_CI_AS.
 
 ### 1.2 vnstock behaviour (measured before downloading)
 Checked with `inspect.signature` / `inspect.getsource` on the installed package and small calls on VCB:
@@ -1052,7 +1052,8 @@ Checks, each against its source and by a second route:
 ### 10.3 Power BI model (`powerbi/dashboard.pbip`)
 - Power BI Desktop 2.159.883.0 (October 2026), saved as a Power BI Project (TMDL). `.pbi/cache.abf`
   (the imported data) and `.pbi/localSettings.json` are in `.gitignore`.
-- Import from `<machine>\SQLEXPRESS`, the seven `v_pbi_*` views only, no Power Query steps besides
+- Import from the local SQL Server Express instance (Power Query text parameter `SqlServer`, default
+  `localhost\SQLEXPRESS`, used by all seven queries), the seven `v_pbi_*` views only, no Power Query steps besides
   renaming. Auto date/time off (`__PBI_TimeIntelligenceEnabled = 0`), relationship autodetect off.
 - Row counts after load equal the views: Date 730, Ticker 10, Sector Session 497, Episode 96, Ticker
   Session 4,970, Episode News 645, News 6,849.
