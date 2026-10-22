@@ -441,6 +441,20 @@ docs/     data_dictionary, pipeline_log, decisions, price_adjustment_check,
 Naming: `raw_`, `stg_`, `dim_`, `fact_`, `v_` (view), `sp_` (procedure).
 Schemas: `raw`, `stg`, `dw`, `mart`, `dq`.
 
+## Data sources and terms
+
+- **Prices and trading calendar:** Daily OHLCV for the ten tickers and the VNINDEX trading calendar
+  were downloaded from VCI through `vnstock` 4.0.9 on 2026-09-27. The vnstock software licence does
+  not grant rights to third-party data, so the price files are excluded from the public release.
+  `ingest/download_prices.py` downloads them again. VCI may adjust historical data after corporate
+  actions, so a fresh download may differ from the snapshot used for the results in this README.
+- **News:** Article titles and URLs were collected from CafeF's sitemaps, and company disclosures
+  from CafeF's per-ticker lists. The crawler checked `robots.txt` and used a descriptive User-Agent
+  and delays between requests. Raw HTML and XML files are not included in the public release. The
+  public versions of the two labelled samples in `docs/` retain URLs and labels but omit the separate
+  title fields; URL slugs may still contain words from the original headlines.
+- This project is for data analysis only and is not investment advice.
+
 ## AI assistance
 
 AI tools were used to assist with project documentation, review of selected analytical findings,
