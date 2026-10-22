@@ -440,3 +440,15 @@ docs/     data_dictionary, pipeline_log, decisions, price_adjustment_check,
 
 Naming: `raw_`, `stg_`, `dim_`, `fact_`, `v_` (view), `sp_` (procedure).
 Schemas: `raw`, `stg`, `dw`, `mart`, `dq`.
+
+## AI assistance
+
+AI tools were used to assist with project documentation, review of selected analytical findings,
+and selected headline-review tasks. The project author made the final decisions on the methodology
+and conclusions.
+
+## License
+
+The code and documentation written for this project are released under the MIT License
+(see `LICENSE`). The license does not cover third-party data or content: price data
+obtained from VCI through vnstock, or CafeF articles, headlines and pages referenced by URL.
