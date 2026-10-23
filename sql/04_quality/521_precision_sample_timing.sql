@@ -8,7 +8,7 @@
 USE BankingSectorIntelligence;
 SET NOCOUNT ON;
 
-DROP TABLE IF EXISTS #t, #w, #r1, #r2, #r3, #r4, #r5, #r6;
+DROP TABLE IF EXISTS #t, #w, #r1, #r2, #r3, #r4, #r5, #r6, #r7;
 CREATE TABLE #t (step NVARCHAR(60) COLLATE DATABASE_DEFAULT, started DATETIME2(7), ended DATETIME2(7), rows_out INT);
 CREATE TABLE #w (step NVARCHAR(60) COLLATE DATABASE_DEFAULT, phase CHAR(1),
                  wait_type NVARCHAR(60) COLLATE DATABASE_DEFAULT, wait_time_ms BIGINT);
@@ -50,27 +50,39 @@ SET @n = @@ROWCOUNT;
 INSERT #t VALUES (N'4 query 2', @s, SYSDATETIME(), @n);
 INSERT #w SELECT N'4 query 2', 'a', wait_type, wait_time_ms FROM sys.dm_exec_session_wait_stats WHERE session_id = @@SPID;
 
--- Step 5: query 3 of 520, first side (view EXCEPT file)
-INSERT #w SELECT N'5 query 3 view-file', 'b', wait_type, wait_time_ms FROM sys.dm_exec_session_wait_stats WHERE session_id = @@SPID;
+-- Step 5: query 3a of 520, first side (view EXCEPT file)
+INSERT #w SELECT N'5 query 3a view-file', 'b', wait_type, wait_time_ms FROM sys.dm_exec_session_wait_stats WHERE session_id = @@SPID;
 SET @s = SYSDATETIME();
-SELECT url, ticker, title INTO #r5
-FROM (SELECT url, ticker, title FROM stg.v_precision_sample
+SELECT url, ticker INTO #r5
+FROM (SELECT url, ticker FROM stg.v_precision_sample
       EXCEPT
-      SELECT url, ticker, title FROM raw.raw_precision_label) x;
+      SELECT url, ticker FROM raw.raw_precision_label) x;
 SET @n = @@ROWCOUNT;
-INSERT #t VALUES (N'5 query 3 view-file', @s, SYSDATETIME(), @n);
-INSERT #w SELECT N'5 query 3 view-file', 'a', wait_type, wait_time_ms FROM sys.dm_exec_session_wait_stats WHERE session_id = @@SPID;
+INSERT #t VALUES (N'5 query 3a view-file', @s, SYSDATETIME(), @n);
+INSERT #w SELECT N'5 query 3a view-file', 'a', wait_type, wait_time_ms FROM sys.dm_exec_session_wait_stats WHERE session_id = @@SPID;
 
--- Step 6: query 3 of 520, second side (file EXCEPT view)
-INSERT #w SELECT N'6 query 3 file-view', 'b', wait_type, wait_time_ms FROM sys.dm_exec_session_wait_stats WHERE session_id = @@SPID;
+-- Step 6: query 3a of 520, second side (file EXCEPT view)
+INSERT #w SELECT N'6 query 3a file-view', 'b', wait_type, wait_time_ms FROM sys.dm_exec_session_wait_stats WHERE session_id = @@SPID;
 SET @s = SYSDATETIME();
-SELECT url, ticker, title INTO #r6
-FROM (SELECT url, ticker, title FROM raw.raw_precision_label
+SELECT url, ticker INTO #r6
+FROM (SELECT url, ticker FROM raw.raw_precision_label
       EXCEPT
-      SELECT url, ticker, title FROM stg.v_precision_sample) y;
+      SELECT url, ticker FROM stg.v_precision_sample) y;
 SET @n = @@ROWCOUNT;
-INSERT #t VALUES (N'6 query 3 file-view', @s, SYSDATETIME(), @n);
-INSERT #w SELECT N'6 query 3 file-view', 'a', wait_type, wait_time_ms FROM sys.dm_exec_session_wait_stats WHERE session_id = @@SPID;
+INSERT #t VALUES (N'6 query 3a file-view', @s, SYSDATETIME(), @n);
+INSERT #w SELECT N'6 query 3a file-view', 'a', wait_type, wait_time_ms FROM sys.dm_exec_session_wait_stats WHERE session_id = @@SPID;
+
+-- Step 7: query 3c of 520 (titles, where the file has one). 3b is a count on the 300-row file, not timed.
+INSERT #w SELECT N'7 query 3c titles', 'b', wait_type, wait_time_ms FROM sys.dm_exec_session_wait_stats WHERE session_id = @@SPID;
+SET @s = SYSDATETIME();
+SELECT v.url, v.ticker INTO #r7
+FROM stg.v_precision_sample v
+JOIN raw.raw_precision_label f ON f.url = v.url AND f.ticker = v.ticker
+WHERE f.title IS NOT NULL
+  AND (v.title IS NULL OR f.title <> v.title);
+SET @n = @@ROWCOUNT;
+INSERT #t VALUES (N'7 query 3c titles', @s, SYSDATETIME(), @n);
+INSERT #w SELECT N'7 query 3c titles', 'a', wait_type, wait_time_ms FROM sys.dm_exec_session_wait_stats WHERE session_id = @@SPID;
 
 -- Result: elapsed time per step and the waits that grew during it (ms, largest first).
 SELECT t.step,

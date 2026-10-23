@@ -68,19 +68,32 @@ SELECT COUNT(*) AS pairs, CHECKSUM_AGG(CHECKSUM(url, ticker)) AS sample_fingerpr
 FROM stg.v_precision_sample;
 GO
 
--- 3. After ingest/load_precision_labels.py: the file still holds the sampled pairs with their titles
---    unchanged (Excel did not damage the text). 0 rows both ways.
+-- 3. After ingest/load_precision_labels.py: the file still holds the sampled pairs, and the titles it
+--    holds are unchanged (Excel did not damage the text). The public CSV keeps the title column but
+--    leaves it empty, so pairs are compared on (url, ticker) and titles only where the file has one.
 IF OBJECT_ID(N'raw.raw_precision_label', N'U') IS NOT NULL
    AND EXISTS (SELECT 1 FROM raw.raw_precision_label)
 BEGIN
-    SELECT N'in view, not in file' AS side, url, ticker, title
-    FROM (SELECT url, ticker, title FROM stg.v_precision_sample
+    -- 3a. Pairs, both ways.
+    SELECT N'in view, not in file' AS side, url, ticker
+    FROM (SELECT url, ticker FROM stg.v_precision_sample
           EXCEPT
-          SELECT url, ticker, title FROM raw.raw_precision_label) x
+          SELECT url, ticker FROM raw.raw_precision_label) x
     UNION ALL
-    SELECT N'in file, not in view', url, ticker, title
-    FROM (SELECT url, ticker, title FROM raw.raw_precision_label
+    SELECT N'in file, not in view', url, ticker
+    FROM (SELECT url, ticker FROM raw.raw_precision_label
           EXCEPT
-          SELECT url, ticker, title FROM stg.v_precision_sample) y;
+          SELECT url, ticker FROM stg.v_precision_sample) y;
+
+    -- 3b. File rows that carry a title. When this is 0, 3c has nothing to compare.
+    SELECT COUNT(*) AS file_rows, COUNT(title) AS file_rows_with_title
+    FROM raw.raw_precision_label;
+
+    -- 3c. Titles that differ, for pairs whose file row has a title.
+    SELECT v.url, v.ticker, v.title AS view_title, f.title AS file_title
+    FROM stg.v_precision_sample v
+    JOIN raw.raw_precision_label f ON f.url = v.url AND f.ticker = v.ticker
+    WHERE f.title IS NOT NULL
+      AND (v.title IS NULL OR f.title <> v.title);
 END;
 GO
