@@ -44,51 +44,7 @@ analysis (window functions), alert episodes, data quality checks.
 
 ## Star schema
 
-```mermaid
-erDiagram
-    dim_date    ||--o{ fact_price_daily : "date_key"
-    dim_ticker  ||--o{ fact_price_daily : "ticker_key"
-    dim_ticker  ||--o{ fact_news        : "ticker_key"
-    dim_article ||--o{ fact_news        : "article_key"
-    dim_date    ||--o{ fact_news        : "publish_date_key"
-    dim_date    |o--o{ fact_news        : "reaction_date_key"
-
-    dim_date {
-        int date_key PK
-        date full_date
-        bit is_trading_day
-        smallint session_seq
-    }
-    dim_ticker {
-        int ticker_key PK
-        nvarchar ticker "durable key"
-        nvarchar full_name
-        date valid_from
-        date valid_to
-        bit is_current
-    }
-    dim_article {
-        int article_key PK
-        varchar url "natural key"
-        varchar item_type
-        nvarchar title
-        datetime2 publish_time_local
-    }
-    fact_price_daily {
-        int ticker_key PK, FK
-        int date_key PK, FK
-        decimal close_price
-        bigint volume
-    }
-    fact_news {
-        int article_key PK, FK
-        int ticker_key PK, FK
-        int publish_date_key FK
-        int reaction_date_key FK
-        tinyint match_tier
-        bit is_sector_news
-    }
-```
+![Star schema of the dw layer](docs/img/star_schema.drawio.png)
 
 - `fact_price_daily` is a periodic snapshot: one row per ticker per trading session.
 - `fact_news` is a factless fact table: one row per news item per bank it is tied to.
