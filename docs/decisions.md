@@ -6,7 +6,7 @@ One entry per decision: what, why, date. Newest at the bottom.
 - Window is `(end_date - 2 years, end_date]`, stored in `config/scope.yaml`, never changed after lock.
 - `end_date` = last completed HOSE session at lock time.
 - `base_date` = first trading session on or after `start_date`, taken from the VNINDEX calendar, not guessed.
-- Why: VCI adjusts prices retroactively, so a fixed window plus a committed raw snapshot is the only way to reproduce numbers.
+- Why: VCI adjusts prices retroactively, so a fixed window plus a saved raw snapshot is the only way to reproduce numbers.
 
 ## 2026-09-27 - Database collation
 - `Vietnamese_100_CI_AS`; all text columns `NVARCHAR`.

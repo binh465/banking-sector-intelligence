@@ -30,7 +30,7 @@ CafeF ─────────┴─ Python ─> raw ─> stg ─> dw (star) 
 
 | layer | what it holds | written by |
 |---|---|---|
-| `raw/` files | parquet (prices, calendar, committed), HTML and XML (news, not committed) | Python |
+| `raw/` files | parquet (prices, calendar; not in the public release), HTML and XML (news, not committed) | Python |
 | `raw` schema | source values as text | Python (`ingest/`) |
 | `stg` | typed, de-duplicated, cut to the window; title matching to banks | SQL (`sql/02_load`, `sql/03_transform/500`) |
 | `dw` | star schema | SQL procedures (`sql/03_transform/400-510`) |
@@ -367,7 +367,8 @@ News presence alone did little to distinguish alert sessions from ordinary sessi
 
 ## How the data was checked
 
-There is no earlier version to compare with, so every step is checked against the data itself.
+There is no independent benchmark or set of expected values, so each step is checked against the
+data itself. The rebuild described in How to run checks that the build can be reproduced.
 
 - **Structural checks** derived from definitions, not from expected values: sessions per ticker
   equal trading days in `dim_date`; 61 NULL z and 60 NULL `corr_60` per ticker; excess returns sum
@@ -396,8 +397,18 @@ This order was re-run from an empty database on 2026-10-23, using the saved loca
 (no new download or crawl); the result matched the database built during development
 (`docs/pipeline_log.md`, 12.1).
 
-In the public release `raw/` holds no data files (see Data sources and terms): run the download
-and crawl scripts in `ingest/` first, in the order given for Phase 1 in `docs/pipeline_log.md`.
+In the public release `raw/` holds no data files (see Data sources and terms). After setting up
+the environment (step 1), download and crawl first, from the repository root (details in
+`docs/pipeline_log.md`, Phase 1):
+
+```
+python ingest/download_prices.py
+python ingest/crawl_ticker_news.py
+python ingest/crawl_sitemaps.py
+python ingest/sample_lastmod.py
+python ingest/fetch_article_pages.py --limit 20
+python ingest/fetch_article_pages.py
+```
 
 1. `conda activate bsi`, `pip install -r requirements.txt`; copy `config/db.yaml` from its template.
    `raw/news/` (not in git) must be on disk.
@@ -422,15 +433,14 @@ and crawl scripts in `ingest/` first, in the order given for Phase 1 in `docs/pi
   CafeF's per-ticker lists (ticker-article pairs) whose article is in the crawled sitemaps, 227 were
   matched to the listed ticker (58.7%). This is an agreement rate, not recall, because CafeF tags
   tickers based on the article body.
-- **Matching precision and relevance.** The matched bank was correct in 99.0% of labelled pairs overall and 98.5% of article pairs. The matched ticker was correct and the bank was the main subject of the item in 65.6% of labelled pairs overall and 48.7% of article pairs. These estimates are weighted by stratum, based on 300 labelled pairs, and use the matching rules as they stood when the sample was drawn. One reviewer labelled the pairs, so inter-rater agreement was not measured. The weak-alias tier (tier 3) has no entries.
+- **Matching precision and relevance.** The matched bank was correct in 99.0% of labelled pairs overall and 98.5% of article pairs. The matched ticker was correct and the bank was the main subject of the item in 65.6% of labelled pairs overall and 48.7% of article pairs. These estimates are weighted by stratum, based on 300 labelled pairs, and use the matching rules as they stood when the sample was drawn; the later exclusion for silver-price titles has not been re-measured with a new sample. One reviewer labelled the pairs, so inter-rater agreement was not measured. The weak-alias tier (tier 3) has no entries.
 - **Sector-wide flag.** Items naming three or more banks (including banks outside the ten) are kept but not used to explain a single ticker. Some still focus on one bank: in the labelled sample, 14 of 97 flagged pairs had the bank as the main subject (unweighted sample counts).
 - **Publish time.** Publication times come from `article:published_time`; 94 pages have no value for this field. Using sitemap `lastmod` instead would assign about 8.4% of articles to a different session. Date-only disclosures are assigned to the next session, so their actual publication times are unknown (Finding 4).
 - **Sector definition.** The sector return is an equal-weight average, not market-cap weighted, so a small bank contributes as much as VCB. When all ten ticker returns are available, each contributes 1/10 to the sector return. This self-inclusion raises each ticker's correlation with the sector, but its excess return is exactly 0.9 times its leave-one-out excess return, leaving its z-score unchanged. A large move in one ticker also affects the sector return used to calculate excess returns for all the other tickers (Finding 4).
 - **z-score is a distance, not a probability.** Sessions with |z| ≥ 3 occur 6 to 11 times as often as a standard normal distribution would predict, depending on the ticker. A large excess return can widen the rolling standard deviation in later sessions and hide a later move: SHB's excess return on 18 March 2025 was almost unchanged from the previous session, but its z-score fell to 2.90 (Finding 1). In a calm window, an excess return of about 1% can reach |z| ≥ 3.
 - **z-scores detect jumps, not trends.** The alert rule detects unusually large daily excess returns relative to recent sessions, but can miss gradual outperformance. From the end of Q1 2026 to 25 September 2026, STB's RS rose 22.3% without an alert session (Finding 2). The Relative Strength page shows this kind of trend.
 - **Small sample.** Two years of data; 96 episodes (80 upward, 16 downward); 99 alert sessions in the base-rate comparison. The 100th alert session falls within the final two sessions of its ticker's series, so it has no complete five-session window. No statistical significance test was run.
-- **Prices.** Prices are adjusted by VCI, including cash dividends; the adjustment was checked at one ex-date. VCI may restate historical data, so the committed `raw/prices` files are the reference copy
-for this project.
+- **Prices.** Prices are adjusted by VCI, including cash dividends; the adjustment was checked at one ex-date. VCI may restate historical data after corporate actions. The snapshot used for these results is not included in the public release, so a fresh download may give different results.
 - **Survivorship bias.** The ten banks were chosen when the scope was set (September 2026), from banks listed at that time. A bank that was listed during the window but delisted or merged before then could not be chosen.
 - **Data quality reconciliation.** The checks reapply the load rules, so they can detect stale or partial loads but cannot detect a rule that is wrong in the same way in both the loader and the check.
 - **Not investment advice.** Alerts and news matches show timing associations, not proof of causation.
