@@ -1206,6 +1206,10 @@ Findings (open)
    unchanged and was not re-run after the fix.
 2. `ingest/load_articles.py` prints nothing until both tables are loaded (it parses 10,959 pages
    first), and the README does not say it runs for minutes.
+   Fixed 2026-10-23: progress lines at each stage (sitemaps read, parsing started, every 1,000
+   pages, pages parsed, loading, committed); the parsing line says it may take several minutes,
+   so the README needs no note. No change to what is loaded. Re-run on the rebuilt database:
+   248,649 and 10,959 rows, counts match; all 11 raw tables equal to BSI_reference afterwards.
 
 Result: The warehouse was rebuilt successfully from an empty target database using
 the saved local source files. Row counts matched across all 11 raw and 17 stg/dw

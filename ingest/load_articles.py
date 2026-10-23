@@ -9,6 +9,8 @@ so the checks in SQL can count them.
 
 Run from the repository root:  python ingest/load_articles.py
 Can be run while fetch_article_pages.py is still going; it loads whatever pages are on disk.
+Prints progress messages for each major stage and every 1,000 parsed pages; parsing saved
+article pages may take several minutes.
 """
 import csv
 import gzip
@@ -55,7 +57,7 @@ def read_pages():
                 name = Path(r["file"]).name
                 url_by_file[name], fetched_by_file[name] = r["url"], r["fetched_at_utc"]
     rows, expected = [], {}
-    for path in sorted(PAGE_DIR.glob("*.gz")):
+    for i, path in enumerate(sorted(PAGE_DIR.glob("*.gz")), start=1):
         soup = BeautifulSoup(gzip.decompress(path.read_bytes()).decode("utf-8", errors="replace"), "html.parser")
         pub = soup.find("meta", attrs={"property": "article:published_time"})
         og = soup.find("meta", attrs={"property": "og:title"})
@@ -63,6 +65,8 @@ def read_pages():
         rows.append([url_by_file.get(path.name), pub.get("content") if pub else None,
                      og.get("content") if og else None, fetched_by_file.get(path.name), key])
         expected[key] = 1
+        if i % 1000 == 0:
+            print(f"  {i} pages", flush=True)
     return rows, expected
 
 
@@ -86,13 +90,20 @@ def main():
     from db import get_connection
 
     sitemap_rows, sitemap_expected = read_sitemaps()
+    print(f"sitemaps read: {len(sitemap_expected)} files, {len(sitemap_rows)} rows", flush=True)
+
+    print("parsing saved article pages (may take several minutes)...", flush=True)
     page_rows, page_expected = read_pages()
+    print(f"pages parsed: {len(page_rows)}", flush=True)
+
     conn = get_connection()
     try:
+        print("loading into SQL Server, one transaction...", flush=True)
         load(conn, "raw.raw_article", ["url", "lastmod", "title"], sitemap_rows, sitemap_expected)
         load(conn, "raw.raw_article_page", ["url", "published_time", "og_title", "fetched_at_utc"],
              page_rows, page_expected)
         conn.commit()
+        print("committed", flush=True)
     except Exception:
         conn.rollback()
         raise
