@@ -1125,3 +1125,85 @@ helpers (Index Series / Index Chart Value, Selected Ticker Title, Axis Start / A
   not to the QA page; a ticker change on one page does not.
 - Page "QA - measure checks" hidden in view mode; Sector Overview is the first page.
 - Not done: refresh is manual in Power BI Desktop (no Power BI Service, no gateway).
+
+---
+
+## Phase 12 - Documentation, public copy, rebuild (from 2026-10-21)
+
+### 12.1 Rebuild from an empty database (2026-10-23)
+Goal: run the README "How to run" order from an empty database and compare the result with the
+database as it was before. Comparison script: `sql/04_quality/950_rebuild_compare.sql`.
+
+Steps
+- Backup `bsi_before_rebuild.bak` (COPY_ONLY, CHECKSUM; 60,250 pages, 470.8 MB);
+  `RESTORE VERIFYONLY ... WITH CHECKSUM`: valid.
+- Restored as `BSI_reference` with MOVE to its own files. Same counts as the source: dim_date 730,
+  dim_ticker 11, dim_article 248,330, fact_price_daily 4,970, fact_news 6,849, dq_run 10;
+  248 user objects.
+- Dropped `BankingSectorIntelligence` (SINGLE_USER WITH ROLLBACK IMMEDIATE, DROP). The guard in
+  `01_ddl/900` (no user objects) was not met on purpose; the verified backup and the queried
+  reference took its place.
+- README steps 2-10: `01_ddl` 000-500; seven loaders; `02_load` 100-120; procedures 400-490 and
+  `sp_load_dw`; `500`, `510` and `sp_load_fact_news`; `04_quality/520` then `02_load/130`;
+  views 600-860; `800` and `dq.sp_run_checks`; Power BI refresh.
+
+Results (rebuild against BSI_reference)
+
+| check | scope | result |
+|---|---|---|
+| tables present | all schemas | 0 tables only in the reference |
+| column definitions | all tables; name, type, length, precision, scale, nullability, identity, computed; EXCEPT both ways | 0 rows |
+| row counts | raw, 11 tables | all equal (raw_article 248,649, raw_article_page 10,959, raw_price_daily 6,000, raw_ticker_news 2,910) |
+| row counts | stg and dw, 17 tables | all equal |
+| object list | tables, views, procedures, functions; EXCEPT both ways | 0 rows |
+| data quality | latest completed run, 11 checks | same status, failed_count and checked_count: 10 PASS, 1 WARN |
+| content | 9 objects (table below) | 0 rows only on either side |
+| Power BI | refresh on the rebuilt database | Sector Period Return 41.3%, STB Latest RS 165.27, 96 episodes, max \|z\| 8.15 |
+
+- The WARN is `return_band_within_tolerance`: 5 sessions just above the 7% band, up to 7.5%,
+  ceiling or floor prices after rounding. The same 5 as in 2.3 and Phase 8; WARN by design.
+
+Content, EXCEPT both ways on natural keys (surrogate keys and load times left out):
+
+| object | rows (both sides) | distinct keys | only in reference | only in rebuild |
+|---|---|---|---|---|
+| dw.fact_news | 6,849 | (PK) | 0 | 0 |
+| mart.v_pbi_ticker_session | 4,970 | 4,970 | 0 | 0 |
+| dw.dim_date | 730 | (PK) | 0 | 0 |
+| dw.dim_ticker | 11 | (PK) | 0 | 0 |
+| dw.dim_article | 248,330 | (PK) | 0 | 0 |
+| dw.fact_price_daily | 4,970 | (PK) | 0 | 0 |
+| stg.stg_precision_label | 300 | (PK) | 0 | 0 |
+| mart.v_pbi_episode | 96 | 96 | 0 | 0 |
+| mart.v_pbi_episode_news | 645 | 645 | 0 | 0 |
+
+- The float columns of v_pbi_ticker_session (ret, z, corr_60) are equal bit for bit.
+- fact_news and fact_price_daily compare ticker with valid_from, so each row is also tied to the
+  same SCD2 version.
+
+Notes
+- `02_load/130`: not_in_current_sample 0 / 0 / 0 / 2 (t2_other), the same in BSI_reference.
+  The 2 pairs are the STB silver-price titles removed from the population by the 5.6 fix. For
+  the same reason the sample fingerprint is now 151271006 (5.4 recorded -220953767 before the fix).
+- raw_alias 108 and stg_alias_exclusion 30 are the after-fix values in 5.6; 5.1 has 107 and 29.
+- 246,057 in 1.8 is the sum of the four lastmod strata of `ingest/sample_lastmod.py` (URLs with any
+  lastmod inside the window), not stg_article (earliest lastmod per URL, window on the page time
+  when there is one): 246,056. Measured on the rebuild: 246,057 URLs by the sampler's rule, 2 of
+  them not in stg_article and 1 stg_article URL not among them; 246,057 - 2 + 1 = 246,056.
+- The first run of `510` created no procedure (EXEC: Msg 2812). Not reproduced; most likely only
+  part of the file was selected. Running the whole file created it. The file was not changed.
+
+Findings (open)
+1. `01_ddl/000`: the collation check uses DATABASEPROPERTYEX(..., 'Collation'), which returns NULL
+   while an existing database is closed (AUTO_CLOSE is on by default in Express). NULL <> '...' is
+   not true, so the check passes without a message. Seen while checking the reference; it did not
+   affect this run, since the database was dropped before `000`.
+2. `ingest/load_articles.py` prints nothing until both tables are loaded (it parses 10,959 pages
+   first), and the README does not say it runs for minutes.
+
+Result: The warehouse was rebuilt successfully from an empty target database using
+the saved local source files. Row counts matched across all 11 raw and 17 stg/dw
+tables; column definitions and object inventories matched; and the 9 selected
+tables and views showed no differences in either EXCEPT direction. The data quality
+results also matched the reference. Source downloads and crawling were not repeated
+as part of this test.

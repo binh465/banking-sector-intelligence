@@ -392,7 +392,9 @@ Full record: [`docs/pipeline_log.md`](docs/pipeline_log.md). Decisions and reaso
 ## How to run
 
 Loading and refresh are manual (no scheduler; SQL Server Express has no Agent).
-This is the order used during development; it has not yet been re-run end to end on an empty database.
+This order was re-run from an empty database on 2026-10-23, using the saved local source files
+(no new download or crawl); the result matched the database built during development
+(`docs/pipeline_log.md`, 12.1).
 
 In the public release `raw/` holds no data files (see Data sources and terms): run the download
 and crawl scripts in `ingest/` first, in the order given for Phase 1 in `docs/pipeline_log.md`.
