@@ -22,14 +22,13 @@ BEGIN
     DECLARE @msg nvarchar(400) = CONCAT(DB_NAME(), N' has collation ', ISNULL(@collation, N'(not readable)'),
                                         N', expected Vietnamese_100_CI_AS. Fix it before continuing.');
     THROW 50001, @msg, 1;
-END
-GO
-USE master;
-GO
+END;
 
+-- Reached only when the check passed. THROW ends the current batch, but SSMS still runs every batch
+-- after the next GO, so the settings stay in this batch. CURRENT is the database opened by USE above.
 -- Dev database: no point-in-time restore needed, keep the log small.
-ALTER DATABASE BankingSectorIntelligence SET RECOVERY SIMPLE;
+ALTER DATABASE CURRENT SET RECOVERY SIMPLE;
 -- Express creates databases with AUTO_CLOSE ON: the database closes after the last connection and
 -- opens again on the next one. Off, so it stays open and its properties stay readable.
-ALTER DATABASE BankingSectorIntelligence SET AUTO_CLOSE OFF;
+ALTER DATABASE CURRENT SET AUTO_CLOSE OFF;
 GO
