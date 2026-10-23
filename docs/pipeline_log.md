@@ -1198,6 +1198,12 @@ Findings (open)
    while an existing database is closed (AUTO_CLOSE is on by default in Express). NULL <> '...' is
    not true, so the check passes without a message. Seen while checking the reference; it did not
    affect this run, since the database was dropped before `000`.
+   Fixed 2026-10-23: `000` now runs USE on the database before reading the collation, treats NULL
+   as a failure, names the database and its collation in the error, and sets AUTO_CLOSE OFF.
+   Tested: (a) existing database, closed (collation_name NULL, is_auto_close_on 1): no error, then
+   collation readable and is_auto_close_on 0; (b) scratch database BSI_collation_test with
+   Latin1_General_CI_AS, same check block: Msg 50001 naming that collation. The CREATE branch is
+   unchanged and was not re-run after the fix.
 2. `ingest/load_articles.py` prints nothing until both tables are loaded (it parses 10,959 pages
    first), and the README does not say it runs for minutes.
 

@@ -9,12 +9,27 @@
 -- collation, fail loudly instead of silently skipping creation.
 IF DB_ID(N'BankingSectorIntelligence') IS NULL
     CREATE DATABASE BankingSectorIntelligence COLLATE Vietnamese_100_CI_AS;
-ELSE IF CAST(DATABASEPROPERTYEX(N'BankingSectorIntelligence', 'Collation') AS nvarchar(128)) <> N'Vietnamese_100_CI_AS'
+GO
+
+-- USE opens the database first. While a database is closed (AUTO_CLOSE), DATABASEPROPERTYEX and
+-- sys.databases.collation_name both return NULL, and NULL <> '...' is not true, so a check run on
+-- a closed database would pass without a word. A NULL that is still there after USE also fails.
+USE BankingSectorIntelligence;
+GO
+DECLARE @collation nvarchar(128) = CAST(DATABASEPROPERTYEX(DB_NAME(), 'Collation') AS nvarchar(128));
+IF @collation IS NULL OR @collation <> N'Vietnamese_100_CI_AS'
 BEGIN
-    THROW 50001, N'BankingSectorIntelligence exists with a collation other than Vietnamese_100_CI_AS. Fix it before continuing.', 1;
+    DECLARE @msg nvarchar(400) = CONCAT(DB_NAME(), N' has collation ', ISNULL(@collation, N'(not readable)'),
+                                        N', expected Vietnamese_100_CI_AS. Fix it before continuing.');
+    THROW 50001, @msg, 1;
 END
+GO
+USE master;
 GO
 
 -- Dev database: no point-in-time restore needed, keep the log small.
 ALTER DATABASE BankingSectorIntelligence SET RECOVERY SIMPLE;
+-- Express creates databases with AUTO_CLOSE ON: the database closes after the last connection and
+-- opens again on the next one. Off, so it stays open and its properties stay readable.
+ALTER DATABASE BankingSectorIntelligence SET AUTO_CLOSE OFF;
 GO
