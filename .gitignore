@@ -3,6 +3,11 @@
 raw/news/*
 !raw/news/.gitkeep
 
+# Public release only: third-party price and calendar snapshots are not published (see README,
+# Data sources and terms). The private repository commits them. .gitkeep stays tracked.
+raw/prices/*.parquet
+raw/calendar/*.parquet
+
 # Local connection settings (copy config/db.example.yaml to config/db.yaml)
 config/db.yaml
 
